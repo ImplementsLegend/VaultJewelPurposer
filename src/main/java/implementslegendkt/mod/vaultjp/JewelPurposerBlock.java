@@ -20,7 +20,7 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 public class JewelPurposerBlock extends Block implements EntityBlock, WorldlyContainerHolder {
-    public  static final JewelPurposerBlock INSTANCE = new JewelPurposerBlock(Properties.of(Material.STONE).destroyTime(6.5f).);
+    public  static final JewelPurposerBlock INSTANCE = new JewelPurposerBlock(Properties.of(Material.STONE).destroyTime(6.5f));
     public  static final BlockItem ITEM = new BlockItem(INSTANCE, new Item.Properties());
 
     public JewelPurposerBlock(Properties p_49795_) {
