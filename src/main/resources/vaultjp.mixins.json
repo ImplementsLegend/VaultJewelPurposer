@@ -1,0 +1,17 @@
+{
+    "required": true,
+    "minVersion": "0.8",
+    "package": "implementslegendkt.mod.vaultjp.mixin",
+    "compatibilityLevel": "JAVA_8",
+    "refmap": "vaultjp.refmap.json",
+    "mixins": [
+        "AccessorAbstractContainerMenu",
+        "AccessorOverSizedInventory",
+        "InventoryPerformanceFix"
+    ],
+    "client": [
+    ],
+    "injectors": {
+        "defaultRequire": 1
+  }
+}

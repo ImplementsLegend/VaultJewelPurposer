@@ -1,0 +1,32 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+      "acr",
+      "ses",
+      "z z"
+    ],
+    "key": {
+        "a": {
+          "item": "the_vault:vault_jewel_application_station"
+        },
+        "c": {
+            "item": "the_vault:vault_jewel_cutting_station"
+        },
+        "r": {
+            "item": "the_vault:vault_recycler"
+        },
+        "s": {
+            "item": "the_vault:chromatic_steel_block"
+        },
+        "e": {
+            "item": "the_vault:echo_pog"
+        },
+        "z": {
+            "item": "the_vault:black_chromatic_steel_ingot"
+        }
+    },
+    "result": {
+      "item": "vaultjp:jewel_purpuser",
+      "count": 1
+    }
+  }
