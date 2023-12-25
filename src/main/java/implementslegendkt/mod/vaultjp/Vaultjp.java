@@ -1,8 +1,10 @@
 package implementslegendkt.mod.vaultjp;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.logging.LogUtils;
 import implementslegendkt.mod.vaultjp.network.Channel;
 import implementslegendkt.mod.vaultjp.screen.JewelPurposerScreen;
+import iskallia.vault.init.ModGameRules;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -10,6 +12,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,13 +26,19 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
+import static net.minecraft.world.level.GameRules.register;
+
 @Mod("vaultjp")
 public class Vaultjp {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    public static GameRules.Key<GameRules.BooleanValue> ALLOW_CUTTING = register("vaultJpAllowCutting", GameRules.Category.MISC, ModGameRules.booleanRule(false));
+    public static GameRules.Key<GameRules.BooleanValue> ALLOW_RECYCLING = register("vaultJpAllowRecycling", GameRules.Category.MISC, ModGameRules.booleanRule(false));
+
     public Vaultjp() {
         MinecraftForge.EVENT_BUS.register(this);
+
         if(FMLEnvironment.dist == Dist.CLIENT) {
             VaultJPClient.registerScreen();
         }

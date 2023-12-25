@@ -1,10 +1,12 @@
 package implementslegendkt.mod.vaultjp.screen.view;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import implementslegendkt.mod.vaultjp.screen.DecentScreen;
 import implementslegendkt.mod.vaultjp.screen.View;
 import implementslegendkt.mod.vaultjp.screen.ViewInteractor;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
@@ -64,8 +66,18 @@ public class SlotViewDSL implements View {
                 var position = view.position.get();
                 if (cursorX>position.getA() && cursorX< position.getA()+16){
                     if (cursorY>position.getB() && cursorY< position.getB()+16){
-                        if(screen.menu.slots.size() > slot && slot>=0)
-                            screen.getMinecraft().gameMode.handleInventoryMouseClick(screen.menu.containerId, slot, key, ClickType.QUICK_MOVE, screen.getMinecraft().player);
+                        if(screen.menu.slots.size() > slot && slot>=0) {
+
+                            boolean flag2 = slot != -999 && (InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 340) || InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 344));
+                            ClickType clicktype = ClickType.PICKUP;
+                            if (flag2) {
+                                clicktype = ClickType.QUICK_MOVE;
+                            } else if (slot == -999) {
+                                clicktype = ClickType.THROW;
+                            }
+                            screen.getMinecraft().gameMode.handleInventoryMouseClick(screen.menu.containerId, slot, key, clicktype, screen.getMinecraft().player);
+
+                        }
                     }
                 }
             }

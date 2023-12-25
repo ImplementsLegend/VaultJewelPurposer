@@ -149,7 +149,8 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
             var jewel = tile.getInventory().getItem(entry.slotPointer());
             if (jewel.getItem() instanceof JewelItem) {
                 var data = VaultGearData.read(jewel);
-                var jewelSize = data.get(ModGearAttributes.JEWEL_SIZE, VaultGearData.Type.ALL, VaultGearAttributeTypeMerger.of(() -> 0, Math::max));
+                var jewelSize = data.get(ModGearAttributes.JEWEL_SIZE, VaultGearData.Type.ALL,  VaultGearAttributeTypeMerger.firstNonNull());
+                if(jewelSize==null) jewelSize=0;
                 if (jewelSize + size > maxSize) continue;
                 size += jewelSize;
                 jewels[jewelCount] = entry.slotPointer();

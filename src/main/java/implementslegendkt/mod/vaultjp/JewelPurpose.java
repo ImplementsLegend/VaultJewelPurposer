@@ -25,7 +25,8 @@ public record JewelPurpose(List<AttributeUsefulness> values, double disposeThres
             acc+=att.getValue(data);
         }
         if(divideBySize) {
-            var size = data.get(ModGearAttributes.JEWEL_SIZE, VaultGearData.Type.ALL, VaultGearAttributeTypeMerger.of(() -> 0, Math::max));
+            var size = data.get(ModGearAttributes.JEWEL_SIZE, VaultGearData.Type.ALL,  VaultGearAttributeTypeMerger.firstNonNull());
+            if(size==null || size<=0) return Double.POSITIVE_INFINITY;
             return acc / size;
         } else return acc;
     }

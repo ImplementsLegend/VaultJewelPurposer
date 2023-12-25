@@ -170,42 +170,45 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
     private int mod = 0;
     public void tick() {
         if(level.isClientSide())return;
-        mod= (mod+1)%16;
-        var range = ModConfigs.VAULT_JEWEL_CUTTING_CONFIG.getJewelCuttingRange();
-        for (int i = mod; i < JewelPurposerContainer.JEWEL_COUNT_MAX; i+=16) {
-            if (inventory.getItem(i).isEmpty()) continue;
-            var item = inventory.removeItemNoUpdate(i);
-            if (!(item.getItem() instanceof JewelItem)) {
-                inventory.setItem(i, item);
-                continue;
-            }
-            var tag = item.getOrCreateTag();
-            var cuts = tag.getInt("freeCuts");
-            if (cuts < 3) {
-                tag=tag.copy();
-                var data = VaultGearData.read(item);
-                var jewelSize = data.getModifiers(ModGearAttributes.JEWEL_SIZE, VaultGearData.Type.ALL);
-                for (var cuts_ = cuts; cuts_ < 3 && jewelSize.stream().anyMatch((it) -> it.getValue() > 10); cuts_++) {
-                    for (var sizeInstance : jewelSize) {
-                        sizeInstance.setValue(Integer.max(10, sizeInstance.getValue() - range.getRandom()));
-                    }
+        if(level.getGameRules().getBoolean(Vaultjp.ALLOW_CUTTING)) {
+            mod = (mod + 1) % 16;
+            var range = ModConfigs.VAULT_JEWEL_CUTTING_CONFIG.getJewelCuttingRange();
+            for (int i = mod; i < JewelPurposerContainer.JEWEL_COUNT_MAX; i += 16) {
+                if (inventory.getItem(i).isEmpty()) continue;
+                var item = inventory.removeItemNoUpdate(i);
+                if (!(item.getItem() instanceof JewelItem)) {
+                    inventory.setItem(i, item);
+                    continue;
                 }
-                tag.putInt("freeCuts", 3);
-                item.setTag(tag);
-                data.write(item);
-            }
-            inventory.setItem(i,item);
-            if (cuts < 3)tryRecycleJewel(i);
+                var tag = item.getOrCreateTag();
+                var cuts = tag.getInt("freeCuts");
+                if (cuts < 3) {
+                    tag = tag.copy();
+                    var data = VaultGearData.read(item);
+                    var jewelSize = data.getModifiers(ModGearAttributes.JEWEL_SIZE, VaultGearData.Type.ALL);
+                    for (var cuts_ = cuts; cuts_ < 3 && jewelSize.stream().anyMatch((it) -> it.getValue() > 10); cuts_++) {
+                        for (var sizeInstance : jewelSize) {
+                            sizeInstance.setValue(Integer.max(10, sizeInstance.getValue() - range.getRandom()));
+                        }
+                    }
+                    tag.putInt("freeCuts", 3);
+                    item.setTag(tag);
+                    data.write(item);
+                }
+                inventory.setItem(i, item);
+                if (cuts < 3 && level.getGameRules().getBoolean(Vaultjp.ALLOW_RECYCLING)) tryRecycleJewel(i);//if jewels with all free cuts spent are added, they won't be recycled by this; won't fix
 
-        }
+            }
+        } else if(level.getGameRules().getBoolean(Vaultjp.ALLOW_RECYCLING)) disposeBad();
     }
     private void tryRecycleJewel(int slot){
+        if(purposes.isEmpty() ||
+                slot<0 ||
+                slot>= JewelPurposerContainer.JEWEL_COUNT_MAX ||
+                !level.getGameRules().getBoolean(Vaultjp.ALLOW_RECYCLING)
+            ) return;
         var jewel = inventory.getItem(slot);
-        if(purposes.isEmpty() || slot<0 || slot>= JewelPurposerContainer.JEWEL_COUNT_MAX){
-            return;
-        }
-        for (var purpose :
-                purposes) {
+        for (var purpose : purposes) {
             var usefulness = purpose.getJewelUsefulness(jewel);
             if (usefulness>purpose.disposeThreshold())return;
         }

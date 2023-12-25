@@ -1,10 +1,7 @@
 package implementslegendkt.mod.vaultjp.screen;
 
 import implementslegendkt.mod.vaultjp.JewelPurposerContainer;
-import implementslegendkt.mod.vaultjp.screen.composition.JewelStorageComposition;
-import implementslegendkt.mod.vaultjp.screen.composition.PlayerInventoryComposition;
-import implementslegendkt.mod.vaultjp.screen.composition.PurposeConfiguratorComposition;
-import implementslegendkt.mod.vaultjp.screen.composition.ToolComposition;
+import implementslegendkt.mod.vaultjp.screen.composition.*;
 import net.minecraft.network.chat.Component;
 
 import java.util.Arrays;
@@ -29,7 +26,8 @@ public class JewelPurposerScreen extends DecentScreen<JewelPurposerScreen,JewelP
                 new PlayerInventoryComposition<>(27, 0, -176 / 2, 52),
                 jewelStorage,
                 purposeConfigurator,
-                tool
+                tool,
+                new GrabbedItemComposition<>()
         );
     }
 }
