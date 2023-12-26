@@ -2,7 +2,7 @@ VAULT JEWEL PURPOSER
 ======
 Small mod for minecraft modpack Vault Hunters that adds a block to simplify jewel management and tool creation.
 
-(screenshot here)
+![screenshot failed, use your imagination](web/screenshot.png?raw=true)
 
 ### Purpose and usefulness
 
@@ -15,10 +15,9 @@ Jewel Purposer remembers purposes that you added to it
 
 ### Tutorial
 
-1. craft jewel purposer (duh!)
-   (crafting recipe here)
+1. craft jewel purposer (use jei)
 2. put your jewels inside (works with hoppers)
-3. create new puropse with "+" or navigate to existing one with '<' and '>' buttons
+3. create new purpose with "+" or navigate to existing one with '<' and '>' buttons
 4. insert your tool
 5. configure attributes to perfect your tool
 - '/' divides value by 10
