@@ -42,8 +42,6 @@ public class Vaultjp {
         if(FMLEnvironment.dist == Dist.CLIENT) {
             VaultJPClient.registerScreen();
         }
-
-        //Channel.registerPackets();
     }
 
     @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -58,29 +56,25 @@ public class Vaultjp {
         public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
             JewelPurposerBlock.INSTANCE.setRegistryName("vaultjp","jewel_purpuser");
             blockRegistryEvent.getRegistry().register(JewelPurposerBlock.INSTANCE);
-            // Register a new block here
-            LOGGER.info("HELLO from Register Block");
+            LOGGER.debug("HELLO from Register Block");
         }
         @SubscribeEvent
         public static void onBlockItemssRegistry(final RegistryEvent.Register<Item> blockRegistryEvent) {
             JewelPurposerBlock.ITEM.setRegistryName("vaultjp","jewel_purpuser");
             blockRegistryEvent.getRegistry().register(JewelPurposerBlock.ITEM);
-            // Register a new block here
-            LOGGER.info("HELLO from Register Item");
+            LOGGER.debug("HELLO from Register Item");
         }
         @SubscribeEvent
         public static void onBlockEntitiesRegistry(final RegistryEvent.Register<BlockEntityType<?>> blockRegistryEvent) {
             JewelPurposerBlockEntity.TYPE.setRegistryName("vaultjp","jewel_purpuser_entity");
             blockRegistryEvent.getRegistry().register(JewelPurposerBlockEntity.TYPE);
-            // Register a new block here
-            LOGGER.info("HELLO from Register Entity");
+            LOGGER.debug("HELLO from Register Entity");
         }
         @SubscribeEvent
         public static void onBlockMenuRegistry(final RegistryEvent.Register<MenuType<?>> blockRegistryEvent) {
             JewelPurposerContainer.MENU_TYPE.setRegistryName("vaultjp","jewel_purpuser_container");
             blockRegistryEvent.getRegistry().register(JewelPurposerContainer.MENU_TYPE);
-            // Register a new block here
-            LOGGER.info("HELLO from Register Menus");
+            LOGGER.debug("HELLO from Register Menus");
         }
     }
 }

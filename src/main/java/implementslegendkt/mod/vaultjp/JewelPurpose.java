@@ -60,4 +60,8 @@ public record JewelPurpose(List<AttributeUsefulness> values, double disposeThres
         return result;
 
     }
+
+    public boolean isBad(ItemStack jewel) {
+        return getJewelUsefulness(jewel) > disposeThreshold();
+    }
 }

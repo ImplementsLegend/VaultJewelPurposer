@@ -1,10 +1,12 @@
 package implementslegendkt.mod.vaultjp;
 
+import iskallia.vault.init.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -21,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class JewelPurposerBlock extends Block implements EntityBlock, WorldlyContainerHolder {
     public  static final JewelPurposerBlock INSTANCE = new JewelPurposerBlock(Properties.of(Material.STONE).destroyTime(6.5f));
-    public  static final BlockItem ITEM = new BlockItem(INSTANCE, new Item.Properties());
+    public  static final BlockItem ITEM = new BlockItem(INSTANCE, new Item.Properties().tab(ModItems.VAULT_MOD_GROUP));
 
     public JewelPurposerBlock(Properties p_49795_) {
         super(p_49795_);

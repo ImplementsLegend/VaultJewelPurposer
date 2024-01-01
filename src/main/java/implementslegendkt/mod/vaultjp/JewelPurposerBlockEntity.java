@@ -80,6 +80,12 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
         return super.getCapability(cap);
     }
 
+    @NotNull
+    @Override
+    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+        return getCapability(cap);
+    }
+
     @Override
     public void invalidateCaps() {
         super.invalidateCaps();
@@ -208,10 +214,9 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
                 !level.getGameRules().getBoolean(Vaultjp.ALLOW_RECYCLING)
             ) return;
         var jewel = inventory.getItem(slot);
-        for (var purpose : purposes) {
-            var usefulness = purpose.getJewelUsefulness(jewel);
-            if (usefulness>purpose.disposeThreshold())return;
-        }
+        if(purposes.stream().anyMatch((purpose)->purpose.isBad(jewel)))return;
+
+        //todo put bad jewels in adjecent
         inventory.removeItemNoUpdate(slot);
         inventory.setChanged();
     }
@@ -233,6 +238,15 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
     public class JewelPurposerInventory extends OverSizedInventory implements DefaultWorldlyContainer {
         public JewelPurposerInventory() {super(JewelPurposerContainer.JEWEL_COUNT_MAX + 16+1, JewelPurposerBlockEntity.this);}
 
+        @Override
+        public boolean canTakeItemThroughFace(int p_19235_, ItemStack p_19236_, @Nullable Direction p_19237_) {
+            if(p_19236_.getItem() instanceof JewelItem) {
+                if (!JewelPurposerBlockEntity.this.purposes.stream().allMatch((purpose) -> purpose.getJewelUsefulness(p_19236_)<purpose.disposeThreshold())){
+                    return false;
+                }
+            }
+            return DefaultWorldlyContainer.super.canPlaceItemThroughFace(p_19235_, p_19236_, p_19237_);
+        }
     }
 
 }
