@@ -179,11 +179,12 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
         if(level.getGameRules().getBoolean(Vaultjp.ALLOW_CUTTING)) {
             mod = (mod + 1) % 16;
             var range = ModConfigs.VAULT_JEWEL_CUTTING_CONFIG.getJewelCuttingRange();
-            for (int i = mod; i < JewelPurposerContainer.JEWEL_COUNT_MAX; i += 16) {
-                if (inventory.getItem(i).isEmpty()) continue;
-                var item = inventory.removeItemNoUpdate(i);
+            for (int i = mod; i < JewelPurposerContainer.JEWEL_COUNT_MAX; i += 144) for(var i2=0;i2<8;i2++){
+                var slotIndex = i+i2;
+                if (inventory.getItem(slotIndex).isEmpty()) continue;
+                var item = inventory.removeItemNoUpdate(slotIndex);
                 if (!(item.getItem() instanceof JewelItem)) {
-                    inventory.setItem(i, item);
+                    inventory.setItem(slotIndex, item);
                     continue;
                 }
                 var tag = item.getOrCreateTag();
@@ -201,12 +202,13 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
                     item.setTag(tag);
                     data.write(item);
                 }
-                inventory.setItem(i, item);
-                if (cuts < 3 && level.getGameRules().getBoolean(Vaultjp.ALLOW_RECYCLING)) tryRecycleJewel(i);//if jewels with all free cuts spent are added, they won't be recycled by this; won't fix
+                inventory.setItem(slotIndex, item);
+                tryRecycleJewel(slotIndex);//if jewels with all free cuts spent are added, they won't be recycled by this; won't fix
 
             }
         } else if(level.getGameRules().getBoolean(Vaultjp.ALLOW_RECYCLING)) disposeBad();
     }
+    @SuppressWarnings("ConstantValue")
     private void tryRecycleJewel(int slot){
         if(purposes.isEmpty() ||
                 slot<0 ||
@@ -216,9 +218,19 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
         var jewel = inventory.getItem(slot);
         if(purposes.stream().anyMatch((purpose)->purpose.isBad(jewel)))return;
 
-        //todo put bad jewels in adjecent
-        inventory.removeItemNoUpdate(slot);
-        inventory.setChanged();
+        var next = level.getBlockEntity(worldPosition.below());
+        if(next==null) return;
+        var cap = next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,Direction.UP).orElse(next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null));
+        if(cap ==null) return;
+        var targetSlots = cap.getSlots();
+        var stack = inventory.getItem(slot);
+        for (var targetSlot = 0;targetSlot<targetSlots && !stack.isEmpty();targetSlot++) {
+            stack=cap.insertItem(targetSlot,stack,false);
+        }
+        if (stack.isEmpty()) {//assuming 1 item per slot
+            inventory.removeItemNoUpdate(slot);
+            inventory.setChanged();
+        }
     }
 
     public void disposeBad() {

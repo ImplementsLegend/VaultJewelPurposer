@@ -19,6 +19,7 @@ import oshi.util.tuples.Pair;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Function;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 public class JewelStorageComposition implements Composition<JewelPurposerScreen> {
@@ -26,16 +27,19 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
 
     private final int firstSlot;
     private final Function<ItemStack,Double> usefulnessCalculator;
-    private final Supplier<Integer> maxSize;
+    private final IntSupplier maxSize;
+    private final IntSupplier screenID;
     private int jewelInvScroll = 0;
+    private int lastSortScreenId = -2;
     private int pageCount = 1;
 
     public static record OrderEntry(int slotPointer, double usefulness){}
     private OrderEntry[] jewelOrder;
-    public JewelStorageComposition(int firstSlot, Function<ItemStack, Double> usefulness, Supplier<Integer> maxSize) {
+    public JewelStorageComposition(int firstSlot, Function<ItemStack, Double> usefulness, IntSupplier maxSize, IntSupplier screenID) {
         this.firstSlot = firstSlot;
         this.usefulnessCalculator = usefulness;
         this.maxSize = maxSize;
+        this.screenID = screenID;
     }
 
     @Override
@@ -112,7 +116,9 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
     public void determineOrder(JewelPurposerBlockEntity tile) {
 
         var cont = tile.getInventory().getOverSizedContents();
-        if(cont.isEmpty())return;
+        var currentScreenID = screenID.getAsInt();
+        if(cont.isEmpty() || currentScreenID==lastSortScreenId)return;
+        lastSortScreenId=currentScreenID;
 
         var size = 0;
         for (var entry:cont) if((!entry.overSizedStack().isEmpty()) &&(entry.overSizedStack().getItem() instanceof JewelItem))size++;
@@ -141,7 +147,7 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
 
     public int[] getJewels(JewelPurposerBlockEntity tile) {
         var size = 0;
-        var maxSize = this.maxSize.get();
+        var maxSize = this.maxSize.getAsInt();
         var jewels = new int[maxSize/ 10];
         Arrays.fill(jewels, -1);
         var jewelCount = 0;

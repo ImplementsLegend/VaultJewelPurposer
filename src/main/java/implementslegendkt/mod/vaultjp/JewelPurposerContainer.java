@@ -153,7 +153,6 @@ public class JewelPurposerContainer extends OverSizedSlotContainer {
             ((AccessorAbstractContainerMenu)this).callTriggerSlotListeners(i, itemstack, supplier);
             ((AccessorAbstractContainerMenu)this).callSynchronizeSlotToRemote(i, itemstack, supplier);
         }
-
         ((AccessorAbstractContainerMenu)this).callSynchronizeCarriedToRemote();
 
         for(int j = 0; j < ((AccessorAbstractContainerMenu)this).getDataSlots().size(); ++j) {

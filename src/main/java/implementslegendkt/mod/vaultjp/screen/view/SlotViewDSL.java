@@ -76,6 +76,7 @@ public class SlotViewDSL implements View {
                                 clicktype = ClickType.THROW;
                             }
                             screen.getMinecraft().gameMode.handleInventoryMouseClick(screen.menu.containerId, slot, key, clicktype, screen.getMinecraft().player);
+                            screen.menu.incrementStateId();
 
                         }
                     }

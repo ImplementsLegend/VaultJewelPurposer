@@ -16,7 +16,7 @@ public class JewelPurposerScreen extends DecentScreen<JewelPurposerScreen,JewelP
         super(menu, p_96550_);
         var tile = menu.getTileEntity();
         purposeConfigurator = new PurposeConfiguratorComposition();
-        jewelStorage = new JewelStorageComposition(36, (stack)->purposeConfigurator.getJewelUsefulness(stack, tile), () -> purposeConfigurator.sizeLimit);
+        jewelStorage = new JewelStorageComposition(36, (stack)->purposeConfigurator.getJewelUsefulness(stack, tile), () -> purposeConfigurator.sizeLimit, menu::getStateId);
         jewelStorage.determineOrder(tile);
         tool = new ToolComposition(jewelStorage::getJewels);
     }

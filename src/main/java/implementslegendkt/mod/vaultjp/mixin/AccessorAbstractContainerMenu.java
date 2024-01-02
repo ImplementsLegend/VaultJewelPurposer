@@ -29,4 +29,5 @@ public interface AccessorAbstractContainerMenu {
 
     @Invoker("synchronizeDataSlotToRemote")
     void callSynchronizeDataSlotToRemote(int j, int k);
+
 }
