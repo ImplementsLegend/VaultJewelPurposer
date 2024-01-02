@@ -17,8 +17,8 @@
     "vaultjp.attrib.item_rar.hover": "Usefulness of item rarity",
     "vaultjp.attrib.immor.label": "Immortality",
     "vaultjp.attrib.immor.hover": "Usefulness of vanilla imortality",
-    "vaultjp.config_entry.usefulness.label": "Usefulness limit",
-    "vaultjp.config_entry.usefulness.hover": "Minimum allowed total usefulness of jewel before it gets discarted",
+    "vaultjp.config_entry.usefulness.label": "Dump limit",
+    "vaultjp.config_entry.usefulness.hover": "Jewels with usefulness below this limit will be dumped into inventory below",
     "vaultjp.config_entry.max_size.label": "Size limit",
     "vaultjp.config_entry.max_size.hover": "Maximum capacity allowed to be used",
     "block.vaultjp.jewel_purpuser": "Jewel Purposer"
