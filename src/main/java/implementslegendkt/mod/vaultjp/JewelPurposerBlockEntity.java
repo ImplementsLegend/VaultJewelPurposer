@@ -72,18 +72,12 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
         return this.getLevel() == null ? null : new JewelPurposerContainer(p_39954_, this.getLevel(), this.getBlockPos(), p_39956_.getInventory());
     }
 
-    @NotNull
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap) {
-        if (!this.remove && cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return this.handler.cast();
-
-        return super.getCapability(cap);
-    }
 
     @NotNull
     @Override
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        return getCapability(cap);
+        if (!this.remove && cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return this.handler.cast();
+        return super.getCapability(cap,side);
     }
 
     @Override
