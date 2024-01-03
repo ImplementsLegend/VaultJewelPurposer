@@ -200,14 +200,13 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
                 tryRecycleJewel(slotIndex);//if jewels with all free cuts spent are added, they won't be recycled by this; won't fix
 
             }
-        } else if(level.getGameRules().getBoolean(Vaultjp.ALLOW_RECYCLING)) disposeBad();
+        } else disposeBad();
     }
     @SuppressWarnings("ConstantValue")
     private void tryRecycleJewel(int slot){
         if(purposes.isEmpty() ||
                 slot<0 ||
-                slot>= JewelPurposerContainer.JEWEL_COUNT_MAX ||
-                !level.getGameRules().getBoolean(Vaultjp.ALLOW_RECYCLING)
+                slot>= JewelPurposerContainer.JEWEL_COUNT_MAX
             ) return;
         var jewel = inventory.getItem(slot);
         if(purposes.stream().anyMatch((purpose)->purpose.isBad(jewel)))return;
