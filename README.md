@@ -18,7 +18,7 @@ Jewel Purposer remembers purposes that you added to it
 1. craft jewel purposer (use jei)
 2. put your jewels inside (works with hoppers)
 3. create new purpose with "+" or navigate to existing one with '<' and '>' buttons
-4. insert your tool
+4. insert your tool (your tool will be stored inside)
 5. configure attributes to perfect your tool
 - '/' divides value by 10
 - '×' multiplies value by 10
@@ -27,10 +27,13 @@ Jewel Purposer remembers purposes that you added to it
 6. click hammer to apply jewels
 7. take back your tool
 
-### Cutting and recycling
+### Cutting
 
-!! RIGHT NOW, THIS IGNORES JEWELER EXPERTISE AND NEITHER PRODUCES NOR CONSUMES ANY RESOURCES. Because of that, these features should be disabled by default, enable with gamerules vaultJpAllowCutting and vaultJpAllowRecycling \
+!! RIGHT NOW, THIS IGNORES JEWELER EXPERTISE AND DOES NOT CONSUME ANY RESOURCES. Because of that, this feature should be disabled by default, enable with gamerule vaultJpAllowCutting \
 \
-Jewel purposer can automatically cut and recycle jewels. \
-All jewels below "Usefulness limit" for **all** purposes will be recycled. \
+Jewel purposer can automatically cut jewels. \
 All jewels with unspent free cuts will be cut.
+
+### Exporting
+
+Jewels below Dump limit will be automatically dumped into container below, this allows you to process unwanted jewels. (But make sure you don't accidentally destroy good jewels when adjusting other values)
