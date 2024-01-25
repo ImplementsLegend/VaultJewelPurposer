@@ -1,10 +1,7 @@
 package implementslegendkt.mod.vaultjp.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import implementslegendkt.mod.vaultjp.screen.view.BackgroundViewDSL;
-import implementslegendkt.mod.vaultjp.screen.view.ButtonViewDSL;
-import implementslegendkt.mod.vaultjp.screen.view.SlotViewDSL;
-import implementslegendkt.mod.vaultjp.screen.view.TextViewDSL;
+import implementslegendkt.mod.vaultjp.screen.view.*;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
@@ -93,6 +90,12 @@ public class DecentScreen<SELF extends DecentScreen<SELF,M>,M extends AbstractCo
         var interactor = getOrCreateInteractor(ButtonViewDSL.ButtonInteractor.class,(unused)-> new ButtonViewDSL.ButtonInteractor());
         interactor.addView(dsl);
     }
+    public void intBox(Consumer<IntBoxViewDSL> slotView){
+        var dsl = new IntBoxViewDSL();
+        slotView.accept(dsl);
+        var interactor = getOrCreateInteractor(IntBoxViewDSL.IntBoxInteractor.class,(unused)-> new IntBoxViewDSL.IntBoxInteractor());
+        interactor.addView(dsl);
+    }
     public void text(Consumer<TextViewDSL> slotView){
         var dsl = new TextViewDSL();
         slotView.accept(dsl);
@@ -119,6 +122,17 @@ public class DecentScreen<SELF extends DecentScreen<SELF,M>,M extends AbstractCo
         }
     }
 
+    @Override
+    public boolean keyPressed(int p_96552_, int p_96553_, int p_96554_) {
+        for (var interactorEntry:interactors.entrySet()) {
+            var interactor = interactorEntry.getValue();
+            if (interactor instanceof BackgroundViewDSL.BackgroundInteractor) continue;
+            interactor.type(this,p_96552_,p_96554_);
+
+        }
+
+        return super.keyPressed(p_96552_, p_96553_, p_96554_);
+    }
 
     @Override
     public void fillGradient(PoseStack p_93180_, int p_93181_, int p_93182_, int p_93183_, int p_93184_, int p_93185_, int p_93186_) {

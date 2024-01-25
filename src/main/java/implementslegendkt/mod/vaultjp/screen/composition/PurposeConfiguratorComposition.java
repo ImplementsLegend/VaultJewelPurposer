@@ -55,7 +55,7 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
             dsl.texture = () -> new ResourceLocation("vaultjp:textures/gui/extra.png");
             dsl.atlasSize = () -> new Pair<>(96, 96);
             dsl.srcRect = () -> new Rect2i(36, 72, 18, 18);
-            dsl.onClick = ()-> currentPurposeIdx=Integer.min(screen.menu.getTileEntity().purposes.size()-1,currentPurposeIdx+1);
+            dsl.onClick = ()-> currentPurposeIdx=Integer.max(0,Integer.min(screen.menu.getTileEntity().purposes.size()-1,currentPurposeIdx+1));
             dsl.pos = () -> new Pair<>(midX - 107, midY - 122);
         });
 
@@ -105,6 +105,10 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
             dsl.text=()->new TranslatableComponent(label+".label").withStyle((style)->style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,new TranslatableComponent(label+".hover"))));
             dsl.pos = (width) -> new Pair<>(x, y);
         });
+        screen.intBox((dsl)->{
+            dsl.pos=(width) -> new Pair<>(x+158-width, y);
+        });
+        /*
         screen.button((dsl) -> {
             buttonBase.accept(dsl);
             dsl.onClick = ()-> valueSetter.accept(valueGetter.get()*0.1);
@@ -133,7 +137,7 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
             dsl.onClick = ()-> valueSetter.accept( valueGetter.get()*10);
             dsl.srcRect = () -> new Rect2i(0, 28, 10, 10);
             dsl.pos = () -> new Pair<>(x+159, y-1);
-        });
+        });*/
 
     }
 

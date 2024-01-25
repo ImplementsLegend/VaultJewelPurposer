@@ -10,4 +10,5 @@ public interface ViewInteractor<T extends View> {
     <S extends DecentScreen<S,?>> void renderViews(S screen, PoseStack stack, int cursorX, int cursorY);
 
     <S extends DecentScreen<S,?>> void click(S screen,int cursorX, int cursorY, int key);
+    default <S extends DecentScreen<S,?>> void type(S screen, int glfwKey, int modifiers){};
 }

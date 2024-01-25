@@ -111,13 +111,13 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
     @Override
     public void tick(JewelPurposerScreen screen) {
         determineOrder(screen.menu.getTileEntity());
-    }
+    }//todo add mark dirty...
 
     public void determineOrder(JewelPurposerBlockEntity tile) {
 
         var cont = tile.getInventory().getOverSizedContents();
         var currentScreenID = screenID.getAsInt();
-        if(cont.isEmpty() || currentScreenID==lastSortScreenId)return;
+        if(cont.isEmpty() /*|| currentScreenID==lastSortScreenId*/)return;
         lastSortScreenId=currentScreenID;
 
         var size = 0;
