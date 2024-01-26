@@ -62,10 +62,10 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
             final var x = slot%8;
             final var y = slot/8;
             final var slotCopy = slot;
-            screen.viewSlot((dsl)->{
+            screen.viewSlot((dsl)->{//todo slot highlight
                 dsl.slot=()->jewelOrder[slotCopy+jewelInvScroll].slotPointer()+ firstSlot;
                 dsl.position=()->new Pair<>(x*18+28+midX,y*18-107+midY);
-                dsl.mapItem= item -> appendUsefulnessToLore(item, jewelOrder[slotCopy+jewelInvScroll].usefulness);
+                dsl.mapItem= item -> appendUsefulnessToLore(item, jewelOrder[slotCopy+jewelInvScroll].usefulness);//todo show jewel cuts
             });
         }
     }

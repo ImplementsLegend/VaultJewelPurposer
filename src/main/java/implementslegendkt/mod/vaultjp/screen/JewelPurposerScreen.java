@@ -1,9 +1,11 @@
 package implementslegendkt.mod.vaultjp.screen;
 
+import implementslegendkt.mod.vaultjp.JewelPurpose;
 import implementslegendkt.mod.vaultjp.JewelPurposerContainer;
 import implementslegendkt.mod.vaultjp.screen.composition.*;
 import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,6 +17,13 @@ public class JewelPurposerScreen extends DecentScreen<JewelPurposerScreen,JewelP
     public JewelPurposerScreen(JewelPurposerContainer menu, Component p_96550_) {
         super(menu, p_96550_);
         var tile = menu.getTileEntity();
+
+        if(tile.purposes.isEmpty()){
+
+            tile.purposes.add(new JewelPurpose(new ArrayList<>(),-1.0,true,""+0));
+            tile.syncToServer();
+        }
+
         purposeConfigurator = new PurposeConfiguratorComposition();
         jewelStorage = new JewelStorageComposition(36, (stack)->purposeConfigurator.getJewelUsefulness(stack, tile), () -> purposeConfigurator.sizeLimit, menu::getStateId);
         jewelStorage.determineOrder(tile);

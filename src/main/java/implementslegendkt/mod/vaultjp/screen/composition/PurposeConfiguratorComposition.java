@@ -7,10 +7,8 @@ import implementslegendkt.mod.vaultjp.JewelPurposerBlockEntity;
 import implementslegendkt.mod.vaultjp.screen.Composition;
 import implementslegendkt.mod.vaultjp.screen.JewelPurposerScreen;
 import implementslegendkt.mod.vaultjp.screen.view.ButtonViewDSL;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -54,7 +52,7 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
         screen.button((dsl)-> {
             dsl.texture = () -> new ResourceLocation("vaultjp:textures/gui/extra.png");
             dsl.atlasSize = () -> new Pair<>(96, 96);
-            dsl.srcRect = () -> new Rect2i(36, 72, 18, 18);
+            dsl.srcRect = () -> new Rect2i(0, 66, 18, 18);
             dsl.onClick = ()-> currentPurposeIdx=Integer.max(0,Integer.min(screen.menu.getTileEntity().purposes.size()-1,currentPurposeIdx+1));
             dsl.pos = () -> new Pair<>(midX - 107, midY - 122);
         });
@@ -64,9 +62,9 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
             dsl.atlasSize = () -> new Pair<>(96, 96);
             dsl.srcRect = () -> new Rect2i(72, 36, 18, 18);
             dsl.onClick = ()->{
-                var te = screen.menu.getTileEntity();
-                te.purposes.add(new JewelPurpose(new ArrayList<>(),-1.0,true,""+currentPurposeIdx));
-                te.syncToServer();
+                var tile = screen.menu.getTileEntity();
+                tile.purposes.add(new JewelPurpose(new ArrayList<>(),-1.0,true,""+currentPurposeIdx));
+                tile.syncToServer();
             };
             dsl.pos = () -> new Pair<>(midX - 87, midY - 122);
         });
@@ -86,16 +84,16 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
         var i = 0;
         for(var p : JewelAttribute.values()) {
             final var offset = i;
-            composeEntry(screen,midX-197,midY+offset-96,p.translationKey(),()->getAttrUsefulness(tile, p),(newValue)->modifyUsefulness(tile, p,(unused)->newValue));//screen.getAttrUsefulness(p));
+            composeEntry(screen,midX-197,midY+offset-96,p.translationKey(),()->getAttrUsefulness(tile, p),(newValue)->modifyUsefulness(tile, p,(unused)->newValue),p.normalization);//screen.getAttrUsefulness(p));
             i += 12;
         }
-        composeEntry(screen,midX-197,midY+i-96,"vaultjp.config_entry.usefulness",()->tile.purposes.isEmpty()? Double.NaN:currentPurpose(tile).disposeThreshold(),(newValue)->modifyDisposeThreshold(tile,(unused)->newValue));//screen.getAttrUsefulness(p));
+        composeEntry(screen,midX-197,midY+i-96,"vaultjp.config_entry.usefulness",()->tile.purposes.isEmpty()? Double.NaN:currentPurpose(tile).disposeThreshold(),(newValue)->modifyDisposeThreshold(tile,(unused)->newValue),1.0);//screen.getAttrUsefulness(p));
         i += 12;
-        composeEntry(screen,midX-197,midY+i-96,"vaultjp.config_entry.max_size",()->(double)sizeLimit,(newValue)->sizeLimit=newValue.intValue());//screen.getAttrUsefulness(p));
+        composeEntry(screen,midX-197,midY+i-96,"vaultjp.config_entry.max_size",()->(double)sizeLimit,(newValue)->sizeLimit=newValue.intValue(),1.0);//screen.getAttrUsefulness(p));
         i += 12;
 
     }
-    public void composeEntry(JewelPurposerScreen screen,int x, int y, String label, Supplier<Double> valueGetter, Consumer<Double> valueSetter){
+    public void composeEntry(JewelPurposerScreen screen,int x, int y, String label, Supplier<Double> valueGetter, Consumer<Double> valueSetter, double normalization){
 
         Consumer<ButtonViewDSL> buttonBase = (dsl) -> {
             dsl.texture = () -> new ResourceLocation("vaultjp:textures/gui/extra.png");
@@ -106,7 +104,15 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
             dsl.pos = (width) -> new Pair<>(x, y);
         });
         screen.intBox((dsl)->{
-            dsl.pos=(width) -> new Pair<>(x+158-width, y);
+
+            dsl.texture = () -> new ResourceLocation("vaultjp:textures/gui/extra.png");
+            dsl.atlasSize = () -> new Pair<>(96, 96);
+            dsl.srcRect = () -> new Rect2i(0, 84, 72, 12);
+            dsl.pos = () -> new Pair<>(x + 98, y-2);
+
+            dsl.textPos =(width) -> new Pair<>(x+169-width, y);
+            dsl.valueGetter=()->(int)(normalization*valueGetter.get());
+            dsl.valueSetter=(it)->valueSetter.accept(it/normalization);
         });
         /*
         screen.button((dsl) -> {

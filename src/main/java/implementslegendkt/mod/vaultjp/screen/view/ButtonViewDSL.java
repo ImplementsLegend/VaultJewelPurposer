@@ -17,8 +17,6 @@ import java.util.function.Supplier;
 
 public class ButtonViewDSL implements View {
 
-    private boolean clicked = false;
-    public boolean isClicked(){return clicked;}
     public Supplier<ResourceLocation> texture;
     public Supplier<Rect2i> srcRect;
     public Supplier<Pair<Integer,Integer>> atlasSize;

@@ -6,9 +6,13 @@ import implementslegendkt.mod.vaultjp.screen.DecentScreen;
 import implementslegendkt.mod.vaultjp.screen.View;
 import implementslegendkt.mod.vaultjp.screen.ViewInteractor;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.glfw.GLFW;
 import oshi.util.tuples.Pair;
 
@@ -16,15 +20,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static net.minecraft.network.chat.HoverEvent.Action.*;
 
 public class IntBoxViewDSL implements View {
-    public int number = 0; //todo replace with getter/setter
-    public Function<Integer, Pair<Integer,Integer>> pos = (width)->new Pair<>(0,0);
+
+    public Supplier<ResourceLocation> texture;
+    public Supplier<Rect2i> srcRect;
+    public Supplier<Pair<Integer,Integer>> atlasSize;
+    public Supplier<Pair<Integer,Integer>> pos = ()->new Pair<>(0,0);
+    public Supplier<Integer> valueGetter = ()->0;
+    public Consumer<Integer> valueSetter = (value)->{};
+    public Function<Integer, Pair<Integer,Integer>> textPos = (width)->new Pair<>(0,0);
     public BiFunction<Integer,Integer,Component> text = (num,cursor)-> {
         if(cursor<0)return new TextComponent(num.toString());
+
+
+        //this just underlines selected digit
         var str = num.toString();
         while (str.length()<cursor+1)str="0"+str;
         var tailStart = str.length()-cursor;
@@ -34,6 +49,8 @@ public class IntBoxViewDSL implements View {
         var head = /*headEnd<0?"":*/str.substring(0,headEnd);
         return new TextComponent(head).append(new TextComponent(selected).withStyle(ChatFormatting.UNDERLINE)).append(new TextComponent(tail));
     };
+
+    public Function<Boolean, Boolean> shouldHighlight = (hovering)->hovering;
 
     public static class IntBoxInteractor implements ViewInteractor<IntBoxViewDSL> {
 
@@ -53,31 +70,52 @@ public class IntBoxViewDSL implements View {
         public <S extends DecentScreen<S,?>> void renderViews(S screen, PoseStack stack, int cursorX, int cursorY) {
             for(var i = 0;i<views.size();i++){
                 var view = views.get(i);
-                var font = screen.getFont();
-                var text = view.text.apply(view.number,i==selected?cursor:-1);
-                var width = font.width(text);
-                var position = view.pos.apply(width);
-                var height = font.lineHeight;
-                font.draw(stack,text,position.getA(),position.getB(),0xffffff);
-                var hover = text.getStyle().getHoverEvent();
-                if(hover!=null){
+                {
+                    //image
+                    RenderSystem.setShader(GameRenderer::getPositionTexShader);
+                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                    RenderSystem.setShaderTexture(0, view.texture.get());
+                    var rect = view.srcRect.get();
+                    var position = view.pos.get();
+                    var atlas = view.atlasSize.get();
+                    screen.blit(stack, position.getA(), position.getB(), screen.getBlitOffset(), rect.getX(), rect.getY(),rect.getWidth(), rect.getHeight(),atlas.getA(),atlas.getB());
 
-                    var hoveringX = cursorX>position.getA() && cursorX< position.getA()+width;
-                    var hoveringY = cursorY>position.getB() && cursorY< position.getB()+height;
-                    if(hoveringX && hoveringY){
-                        HoverEvent.Action<?> action = hover.getAction();
+                    var hoveringX = cursorX>position.getA() && cursorX< position.getA()+rect.getWidth();
+                    var hoveringY = cursorY>position.getB() && cursorY< position.getB()+rect.getHeight();
+                    if(view.shouldHighlight.apply(hoveringX && hoveringY)){
                         RenderSystem.disableDepthTest();
-                        if (action.equals(SHOW_TEXT)) {
-                            var txt = hover.getValue(SHOW_TEXT);
-                            screen.renderTooltip(stack, List.of(txt), Optional.empty(),cursorX,cursorY);
-                        } else if (action.equals(SHOW_ITEM)) {
-                            var info = hover.getValue(SHOW_ITEM);
-                            screen.renderTooltip(stack, screen.getTooltipFromItem(info.getItemStack()), info.getItemStack().getTooltipImage(), cursorX, cursorY);
-                        } else if (action.equals(SHOW_ENTITY)) {
-                            var info = hover.getValue(SHOW_ENTITY);
-                            screen.renderTooltip(stack, info.getTooltipLines(), Optional.empty(), cursorX, cursorY);
-                        }else { /*unknown tooltip type*/ }
+                        GuiComponent.fill(stack, position.getA(),position.getB(), position.getA() + rect.getWidth(), position.getB() + rect.getHeight(), 0x40ffffff);
                         RenderSystem.enableDepthTest();
+                    }
+                }
+                {
+                    //text
+                    var font = screen.getFont();
+                    var text = view.text.apply(view.valueGetter.get(), i == selected ? cursor : -1);
+                    var width = font.width(text);
+                    var position = view.textPos.apply(width);
+                    var height = font.lineHeight;
+                    font.draw(stack, text, position.getA(), position.getB(), 0xffffff);
+                    var hover = text.getStyle().getHoverEvent();
+                    if (hover != null) {
+
+                        var hoveringX = cursorX > position.getA() && cursorX < position.getA() + width;
+                        var hoveringY = cursorY > position.getB() && cursorY < position.getB() + height;
+                        if (hoveringX && hoveringY) {
+                            HoverEvent.Action<?> action = hover.getAction();
+                            RenderSystem.disableDepthTest();
+                            if (action.equals(SHOW_TEXT)) {
+                                var txt = hover.getValue(SHOW_TEXT);
+                                screen.renderTooltip(stack, List.of(txt), Optional.empty(), cursorX, cursorY);
+                            } else if (action.equals(SHOW_ITEM)) {
+                                var info = hover.getValue(SHOW_ITEM);
+                                screen.renderTooltip(stack, screen.getTooltipFromItem(info.getItemStack()), info.getItemStack().getTooltipImage(), cursorX, cursorY);
+                            } else if (action.equals(SHOW_ENTITY)) {
+                                var info = hover.getValue(SHOW_ENTITY);
+                                screen.renderTooltip(stack, info.getTooltipLines(), Optional.empty(), cursorX, cursorY);
+                            } else { /*unknown tooltip type*/ }
+                            RenderSystem.enableDepthTest();
+                        }
                     }
                 }
             }
@@ -87,11 +125,10 @@ public class IntBoxViewDSL implements View {
         public <S extends DecentScreen<S,?>> void click(S screen, int cursorX, int cursorY,int key) {
             for(var i = 0;i<views.size();i++){
                 var view = views.get(i);
-                var font = screen.getFont();
-                var text = view.text.apply(view.number,i==selected?cursor:-1);
-                var width = font.width(text);
-                var position = view.pos.apply(width);
-                var height = font.lineHeight;
+                var position = view.pos.get();
+                var rect = view.srcRect.get();
+                var width = rect.getWidth();
+                var height = rect.getHeight();
 
                 var hoveringX = cursorX>position.getA() && cursorX< position.getA()+width;
                 var hoveringY = cursorY>position.getB() && cursorY< position.getB()+height;
@@ -104,13 +141,14 @@ public class IntBoxViewDSL implements View {
 
         @Override
         public <S extends DecentScreen<S, ?>> void type(S screen, int glfwKey, int modifiers) {
+            var view = views.get(selected);
             if(glfwKey == GLFW.GLFW_KEY_TAB){
                 selected=selected+(((modifiers&0b010)==0)?+1:-1);
                 while (selected<0)selected+=views.size();
                 while (selected>=views.size())selected-=views.size();
             }
             if(glfwKey == GLFW.GLFW_KEY_KP_ADD || glfwKey == GLFW.GLFW_KEY_UP){
-                views.get(selected).number+=getCursorExp();
+                view.valueSetter.accept(view.valueGetter.get()+getCursorExp());
             }
             if(glfwKey == GLFW.GLFW_KEY_LEFT){
                 cursor++;
@@ -119,18 +157,20 @@ public class IntBoxViewDSL implements View {
                 cursor--;
             }
             if(glfwKey == GLFW.GLFW_KEY_KP_SUBTRACT || glfwKey == GLFW.GLFW_KEY_DOWN){
-                views.get(selected).number-=getCursorExp();
+                view.valueSetter.accept(view.valueGetter.get()-getCursorExp());
             }
             if (glfwKey>=GLFW.GLFW_KEY_0 && glfwKey<=GLFW.GLFW_KEY_9){
                 var digit = glfwKey-GLFW.GLFW_KEY_0;
-                var currentDigit = (views.get(selected).number/getCursorExp())%10;
-                views.get(selected).number+=(digit-currentDigit)*getCursorExp();
+                var value = view.valueGetter.get();
+                var currentDigit = (value/getCursorExp())%10;
+                view.valueSetter.accept(value+(digit-currentDigit)*getCursorExp());
 
             }
             if (glfwKey>=GLFW.GLFW_KEY_KP_0 && glfwKey<=GLFW.GLFW_KEY_KP_9){
                 var digit = glfwKey-GLFW.GLFW_KEY_KP_0;
-                var currentDigit = (views.get(selected).number/getCursorExp())%10;
-                views.get(selected).number+=(digit-currentDigit)*getCursorExp();
+                var value = view.valueGetter.get();
+                var currentDigit = (value/getCursorExp())%10;
+                view.valueSetter.accept(value+(digit-currentDigit)*getCursorExp());
             }
         }
         private int getCursorExp(){
