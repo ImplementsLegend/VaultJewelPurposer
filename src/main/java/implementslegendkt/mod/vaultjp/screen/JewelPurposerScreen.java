@@ -17,6 +17,7 @@ public class JewelPurposerScreen extends DecentScreen<JewelPurposerScreen,JewelP
     public JewelPurposerScreen(JewelPurposerContainer menu, Component p_96550_) {
         super(menu, p_96550_);
         var tile = menu.getTileEntity();
+        var thiz = this;
 
         if(tile.purposes.isEmpty()){
 
@@ -24,8 +25,8 @@ public class JewelPurposerScreen extends DecentScreen<JewelPurposerScreen,JewelP
             tile.syncToServer();
         }
 
-        purposeConfigurator = new PurposeConfiguratorComposition();
-        jewelStorage = new JewelStorageComposition(36, (stack)->purposeConfigurator.getJewelUsefulness(stack, tile), () -> purposeConfigurator.sizeLimit, menu::getStateId);
+        purposeConfigurator = new PurposeConfiguratorComposition(()->thiz.jewelStorage.markDirty());
+        jewelStorage = new JewelStorageComposition(36, (stack)->thiz.purposeConfigurator.getJewelUsefulness(stack, tile), () -> thiz.purposeConfigurator.sizeLimit, menu::getStateId);
         jewelStorage.determineOrder(tile);
         tool = new ToolComposition(jewelStorage::getJewels);
     }

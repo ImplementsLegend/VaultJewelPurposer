@@ -1,7 +1,6 @@
 package implementslegendkt.mod.vaultjp.screen.composition;
 
 import implementslegendkt.mod.vaultjp.JewelPurposerBlockEntity;
-import implementslegendkt.mod.vaultjp.JewelPurposerContainer;
 import implementslegendkt.mod.vaultjp.screen.Composition;
 import implementslegendkt.mod.vaultjp.screen.JewelPurposerScreen;
 import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger;
@@ -20,7 +19,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 
 public class JewelStorageComposition implements Composition<JewelPurposerScreen> {
 
@@ -35,6 +33,9 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
 
     public static record OrderEntry(int slotPointer, double usefulness){}
     private OrderEntry[] jewelOrder;
+    private boolean dirty = true;
+
+
     public JewelStorageComposition(int firstSlot, Function<ItemStack, Double> usefulness, IntSupplier maxSize, IntSupplier screenID) {
         this.firstSlot = firstSlot;
         this.usefulnessCalculator = usefulness;
@@ -65,7 +66,7 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
             screen.viewSlot((dsl)->{//todo slot highlight
                 dsl.slot=()->jewelOrder[slotCopy+jewelInvScroll].slotPointer()+ firstSlot;
                 dsl.position=()->new Pair<>(x*18+28+midX,y*18-107+midY);
-                dsl.mapItem= item -> appendUsefulnessToLore(item, jewelOrder[slotCopy+jewelInvScroll].usefulness);//todo show jewel cuts
+                dsl.mapItem= item -> appendUsefulnessToLore(item, jewelOrder[slotCopy+jewelInvScroll].usefulness);
             });
         }
     }
@@ -111,19 +112,26 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
     @Override
     public void tick(JewelPurposerScreen screen) {
         determineOrder(screen.menu.getTileEntity());
-    }//todo add mark dirty...
+    }
+
+    public void markDirty(){
+        dirty=true;
+    }
 
     public void determineOrder(JewelPurposerBlockEntity tile) {
 
         var cont = tile.getInventory().getOverSizedContents();
         var currentScreenID = screenID.getAsInt();
-        if(cont.isEmpty() /*|| currentScreenID==lastSortScreenId*/)return;
+        if(cont.isEmpty() || (currentScreenID==lastSortScreenId && !dirty))return;
         lastSortScreenId=currentScreenID;
 
         var size = 0;
         for (var entry:cont) if((!entry.overSizedStack().isEmpty()) &&(entry.overSizedStack().getItem() instanceof JewelItem))size++;
 
         pageCount=Integer.max(1,(size+63)/64);
+
+
+
         jewelOrder = new OrderEntry[64*pageCount];
 
         var orderIndex = 0;
@@ -135,15 +143,43 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
         }
         for (int contentIndex = 0; contentIndex < cont.size() && orderIndex<64*pageCount; contentIndex++) {
             if(!(cont.get(contentIndex).overSizedStack().getItem() instanceof JewelItem)){
-                jewelOrder[orderIndex]=new OrderEntry(contentIndex,-1);
+                jewelOrder[orderIndex]=new OrderEntry(contentIndex, usefulnessCalculator.apply(ItemStack.EMPTY));
                 orderIndex++;
             }
         }
 
         Arrays.sort(jewelOrder, Comparator.comparingDouble((it)->-it.usefulness()));
+        dirty=false;
     }
+/*
+    private int[] findChanged(JewelPurposerBlockEntity tile) {
 
+        var cont = tile.getInventory().getOverSizedContents();
+        var size = 0;
+        for (var entry:cont) if((!entry.overSizedStack().isEmpty()) &&(entry.overSizedStack().getItem() instanceof JewelItem))size++;
 
+        var jewelIndicesNew = new int[size+jewelIndices.length];
+        var jewelIndex = 0;
+        var jewelOldIndex = 0;
+        for (int contentIndex = 0; contentIndex < cont.size(); contentIndex++) {
+            if(cont.get(contentIndex).overSizedStack().getItem() instanceof JewelItem){
+                while(contentIndex>jewelIndices[jewelOldIndex]){
+                    jewelIndicesNew[jewelIndex]=jewelIndices[jewelOldIndex];
+                    jewelOldIndex++;
+                    jewelIndex++;
+                }
+                if(contentIndex<jewelIndices[jewelOldIndex]){
+                    jewelIndicesNew[jewelIndex]=contentIndex;
+                    jewelIndex++;
+                }
+                if(contentIndex==jewelIndices[jewelOldIndex]){
+                    jewelOldIndex++;
+                }
+            }
+        }
+        return Arrays.copyOf(jewelIndicesNew,jewelIndex);
+    }
+*/
 
     public int[] getJewels(JewelPurposerBlockEntity tile) {
         var size = 0;

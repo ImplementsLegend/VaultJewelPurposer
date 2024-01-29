@@ -23,8 +23,13 @@ import java.util.function.Supplier;
 public class PurposeConfiguratorComposition implements Composition<JewelPurposerScreen> {
 
 
+    private final Runnable markDirty;
     private int currentPurposeIdx =0;
     public int sizeLimit=300;
+
+    public PurposeConfiguratorComposition(Runnable markDirty) {
+        this.markDirty = markDirty;
+    }
 
     @Override
     public void compose(JewelPurposerScreen screen, int midX, int midY) {
@@ -40,7 +45,10 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
             dsl.texture = () -> new ResourceLocation("vaultjp:textures/gui/extra.png");
             dsl.atlasSize = () -> new Pair<>(96, 96);
             dsl.srcRect = () -> new Rect2i(36, 54, 18, 18);
-            dsl.onClick = ()-> currentPurposeIdx=Integer.max(0,currentPurposeIdx-1);
+            dsl.onClick = ()-> {
+                markDirty.run();
+                currentPurposeIdx = Integer.max(0, currentPurposeIdx - 1);
+            };
             dsl.pos = () -> new Pair<>(midX - 144, midY - 122);
         });
 
@@ -53,7 +61,10 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
             dsl.texture = () -> new ResourceLocation("vaultjp:textures/gui/extra.png");
             dsl.atlasSize = () -> new Pair<>(96, 96);
             dsl.srcRect = () -> new Rect2i(0, 66, 18, 18);
-            dsl.onClick = ()-> currentPurposeIdx=Integer.max(0,Integer.min(screen.menu.getTileEntity().purposes.size()-1,currentPurposeIdx+1));
+            dsl.onClick = ()-> {
+                markDirty.run();
+                currentPurposeIdx = Integer.max(0, Integer.min(screen.menu.getTileEntity().purposes.size() - 1, currentPurposeIdx + 1));
+            };
             dsl.pos = () -> new Pair<>(midX - 107, midY - 122);
         });
 
@@ -84,7 +95,10 @@ public class PurposeConfiguratorComposition implements Composition<JewelPurposer
         var i = 0;
         for(var p : JewelAttribute.values()) {
             final var offset = i;
-            composeEntry(screen,midX-197,midY+offset-96,p.translationKey(),()->getAttrUsefulness(tile, p),(newValue)->modifyUsefulness(tile, p,(unused)->newValue),p.normalization);//screen.getAttrUsefulness(p));
+            composeEntry(screen,midX-197,midY+offset-96,p.translationKey(),()->getAttrUsefulness(tile, p),(newValue)-> {
+                markDirty.run();
+                modifyUsefulness(tile, p, (unused) -> newValue);
+            },p.normalization);//screen.getAttrUsefulness(p));
             i += 12;
         }
         composeEntry(screen,midX-197,midY+i-96,"vaultjp.config_entry.usefulness",()->tile.purposes.isEmpty()? Double.NaN:currentPurpose(tile).disposeThreshold(),(newValue)->modifyDisposeThreshold(tile,(unused)->newValue),1.0);//screen.getAttrUsefulness(p));

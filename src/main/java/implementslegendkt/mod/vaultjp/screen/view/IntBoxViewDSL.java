@@ -34,19 +34,21 @@ public class IntBoxViewDSL implements View {
     public Supplier<Pair<Integer,Integer>> pos = ()->new Pair<>(0,0);
     public Supplier<Integer> valueGetter = ()->0;
     public Consumer<Integer> valueSetter = (value)->{};
+    public Supplier<Integer> maxValue = ()->1999999999;
+    public Supplier<Integer> minValue = ()->-1999999999;
     public Function<Integer, Pair<Integer,Integer>> textPos = (width)->new Pair<>(0,0);
     public BiFunction<Integer,Integer,Component> text = (num,cursor)-> {
         if(cursor<0)return new TextComponent(num.toString());
 
 
         //this just underlines selected digit
-        var str = num.toString();
+        var str = num<0?num.toString().substring(1):num.toString();
         while (str.length()<cursor+1)str="0"+str;
         var tailStart = str.length()-cursor;
         var tail = tailStart<str.length()?str.substring(tailStart):"";
         var selected = str.substring(str.length()-1-cursor,str.length()-cursor);
         var headEnd = str.length()-1-cursor;
-        var head = /*headEnd<0?"":*/str.substring(0,headEnd);
+        var head = /*headEnd<0?"":*/(num<0?"-":"")+str.substring(0,headEnd);
         return new TextComponent(head).append(new TextComponent(selected).withStyle(ChatFormatting.UNDERLINE)).append(new TextComponent(tail));
     };
 
@@ -148,29 +150,33 @@ public class IntBoxViewDSL implements View {
                 while (selected>=views.size())selected-=views.size();
             }
             if(glfwKey == GLFW.GLFW_KEY_KP_ADD || glfwKey == GLFW.GLFW_KEY_UP){
-                view.valueSetter.accept(view.valueGetter.get()+getCursorExp());
+                var newValue = view.valueGetter.get()+getCursorExp();
+                if(newValue<view.maxValue.get())view.valueSetter.accept(newValue);
             }
             if(glfwKey == GLFW.GLFW_KEY_LEFT){
-                cursor++;
+                cursor= Integer.min(cursor+1,(int)Math.log10(view.valueGetter.get()<0?-view.minValue.get():view.maxValue.get()));
             }
             if(glfwKey == GLFW.GLFW_KEY_RIGHT){
-                cursor--;
+                cursor = Integer.max(cursor-1,0);
             }
             if(glfwKey == GLFW.GLFW_KEY_KP_SUBTRACT || glfwKey == GLFW.GLFW_KEY_DOWN){
-                view.valueSetter.accept(view.valueGetter.get()-getCursorExp());
+                var newValue = view.valueGetter.get()-getCursorExp();
+                if(newValue>view.minValue.get())view.valueSetter.accept(newValue);
             }
             if (glfwKey>=GLFW.GLFW_KEY_0 && glfwKey<=GLFW.GLFW_KEY_9){
                 var digit = glfwKey-GLFW.GLFW_KEY_0;
                 var value = view.valueGetter.get();
                 var currentDigit = (value/getCursorExp())%10;
-                view.valueSetter.accept(value+(digit-currentDigit)*getCursorExp());
+                var newValue = value-(currentDigit+((value<0)?digit:-digit))*getCursorExp();
+                if(newValue<view.maxValue.get())view.valueSetter.accept(newValue);
 
             }
             if (glfwKey>=GLFW.GLFW_KEY_KP_0 && glfwKey<=GLFW.GLFW_KEY_KP_9){
                 var digit = glfwKey-GLFW.GLFW_KEY_KP_0;
                 var value = view.valueGetter.get();
                 var currentDigit = (value/getCursorExp())%10;
-                view.valueSetter.accept(value+(digit-currentDigit)*getCursorExp());
+                var newValue = value-(currentDigit+((value<0)?digit:-digit))*getCursorExp();
+                if(newValue<view.maxValue.get())view.valueSetter.accept(newValue);
             }
         }
         private int getCursorExp(){

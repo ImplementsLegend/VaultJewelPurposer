@@ -8,7 +8,7 @@ public enum JewelAttribute {
     DURABILITY(ModGearAttributes.DURABILITY, "vaultjp.attrib.durability", 100.0),
     TRAP_DISARMING(ModGearAttributes.TRAP_DISARMING, "vaultjp.attrib.trap_disarm", 1.0),
     REACH(ModGearAttributes.REACH, "vaultjp.attrib.reach", 0.1),
-    COPIOUSLY(ModGearAttributes.COPIOUSLY, "vaultjp.attrib.copious", 1.0),
+    COPIOUSLY(ModGearAttributes.COPIOUSLY, "vaultjp.attrib.copious", 0.1),
     HAMMER_SIZE(ModGearAttributes.HAMMER_SIZE, "vaultjp.attrib.hammer", 1.0),
     ITEM_QUANTITY(ModGearAttributes.ITEM_QUANTITY, "vaultjp.attrib.item_quan", 0.01),
     ITEM_RARITY(ModGearAttributes.ITEM_RARITY, "vaultjp.attrib.item_rar", 0.01),

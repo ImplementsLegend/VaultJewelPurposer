@@ -17,7 +17,7 @@ public record JewelPurpose(List<AttributeUsefulness> values, double disposeThres
     private static final List<JewelAttribute> jewelAttributes = Arrays.asList(JewelAttribute.values());
 
     public double getJewelUsefulness(ItemStack jewel){
-        if(!(jewel.getItem() instanceof JewelItem))return -1;
+        if(!(jewel.getItem() instanceof JewelItem))return Double.NEGATIVE_INFINITY;
         var data = VaultGearData.read(jewel);
 
         var acc = 0.0;
@@ -62,6 +62,6 @@ public record JewelPurpose(List<AttributeUsefulness> values, double disposeThres
     }
 
     public boolean isBad(ItemStack jewel) {
-        return getJewelUsefulness(jewel) > disposeThreshold();
+        return getJewelUsefulness(jewel) < disposeThreshold();
     }
 }

@@ -209,7 +209,7 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
                 slot>= JewelPurposerContainer.JEWEL_COUNT_MAX
             ) return;
         var jewel = inventory.getItem(slot);
-        if(purposes.stream().anyMatch((purpose)->purpose.isBad(jewel)))return;
+        if(purposes.stream().anyMatch((purpose)->!purpose.isBad(jewel)) || !(jewel.getItem() instanceof JewelItem))return;
 
         var next = level.getBlockEntity(worldPosition.below());
         if(next==null) return;

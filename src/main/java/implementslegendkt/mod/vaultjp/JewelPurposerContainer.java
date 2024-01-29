@@ -8,8 +8,10 @@ import iskallia.vault.container.slot.TabSlot;
 import iskallia.vault.init.ModSlotIcons;
 import iskallia.vault.item.tool.JewelItem;
 import iskallia.vault.item.tool.ToolItem;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -18,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 
+import java.sql.DriverManager;
 import java.util.function.Supplier;
 
 public class JewelPurposerContainer extends OverSizedSlotContainer {
