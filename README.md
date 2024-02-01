@@ -20,10 +20,11 @@ Jewel Purposer remembers purposes that you added to it
 3. create new purpose with "+" or navigate to existing one with '<' and '>' buttons
 4. insert your tool (your tool will be stored inside)
 5. configure attributes to perfect your tool
-- '/' divides value by 10
-- '×' multiplies value by 10
-- '+' adds 1 to value
-- '-' subtracts 1 from value
+- TAB, CTRL+TAB or mouse click to select value to edit
+- arrow-left, arrow-right or mouse click to select digit to edit
+- 0-9, to set digit to specific value
+- arrow-up or plus to increment digit
+- arrow-down or minus to decrement digit
 6. click hammer to apply jewels
 7. take back your tool
 
