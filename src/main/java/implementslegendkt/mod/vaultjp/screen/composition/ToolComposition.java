@@ -39,7 +39,7 @@ public class ToolComposition implements Composition<JewelPurposerScreen> {
             dsl.texture=()->new ResourceLocation("vaultjp:textures/gui/extra.png");
             dsl.srcRect=()->new Rect2i(36,36,18,18);
             dsl.atlasSize = ()->new Pair<>(96,96);
-            dsl.pos = ()->new Pair<>(midX-9,midY-15);
+            dsl.pos = ()->new Pair<>(midX-9,midY-16);
             dsl.onClick=()-> {
                 var tile = screen.menu.getTileEntity();
                 Channel.CHANNEL.sendToServer(new ApplyJewelsPacket(tile.getBlockPos(), jewelListProvider.apply(tile)));
@@ -48,7 +48,7 @@ public class ToolComposition implements Composition<JewelPurposerScreen> {
         });
         screen.viewSlot((dsl)-> {
             dsl.slot=()->-1;
-            dsl.position = ()->new Pair<>(midX-8,midY-32);
+            dsl.position = ()->new Pair<>(midX-8,midY-35);
             dsl.shouldHighlight = (unused)->false;
             dsl.mapItem=(empty)->{
                 var tile = screen.menu.getTileEntity();
