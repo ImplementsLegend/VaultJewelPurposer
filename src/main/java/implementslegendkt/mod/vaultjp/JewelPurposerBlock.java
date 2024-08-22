@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -18,6 +19,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +39,31 @@ public class JewelPurposerBlock extends Block implements EntityBlock, WorldlyCon
             NetworkHooks.openGui(serverPlayer, entity, buffer -> buffer.writeBlockPos(position));
         }
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        // Define each leg (3x3 wide, from Y=0 to Y=12)
+        // Within bounds of (14x14)
+        VoxelShape legFL = Block.box(1.0D, 0.0D, 1.0D, 4.0D, 12.0D, 4.0D);  // Front-left
+        VoxelShape legBL = Block.box(1.0D, 0.0D, 12.0D, 4.0D, 12.0D, 15.0D); // Back-left
+        VoxelShape legFR = Block.box(12.0D, 0.0D, 1.0D, 15.0D, 12.0D, 4.0D); // Front-right
+        VoxelShape legBR = Block.box(12.0D, 0.0D, 12.0D, 15.0D, 12.0D, 15.0D); // Back-right
+
+        // Define the barrel base (10x10 wide, from Y=0 to Y=1)
+        VoxelShape base = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 1.0D, 13.0D);
+
+        // Define the middle barrel (8x8 wide, from Y=1 to Y=12)
+        VoxelShape barrelMiddle = Block.box(4.0D, 1.0D, 4.0D, 12.0D, 12.0D, 12.0D);
+
+        // Define the tabletop (16x16 wide, from Y=12 to Y=14)
+        VoxelShape tabletop = Block.box(0.0D, 12.0D, 0.0D, 16.0D, 14.0D, 16.0D);
+
+        // Define the top of the barrel (10x10 wide, from Y=14 to Y=15)
+        VoxelShape barrelTop = Block.box(3.0D, 14.0D, 3.0D, 13.0D, 15.0D, 13.0D);
+
+        // Combine all shapes
+        return Shapes.or(base, barrelMiddle, tabletop, barrelTop, legFL, legFR, legBL, legBR);
     }
 
 
