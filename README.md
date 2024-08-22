@@ -3,8 +3,7 @@
 Small mod for minecraft modpack Vault Hunters that adds a block to simplify jewel management and tool creation.
 
 <img src="./web/block_model.png" width="250">
-
-![screenshot failed, use your imagination](web/screenshot.png?raw=true)
+<img src="./web/gui-screenshot.png" width="1200">
 
 ### Purpose and usefulness
 
@@ -18,20 +17,20 @@ Jewel Purposer remembers purposes that you added to it
 
 ### Tutorial
 
-1. craft jewel purposer (use jei)
-2. put your jewels inside (works with hoppers)
-3. create new purpose with "+" or navigate to existing one with '<' and '>' buttons
-4. insert your tool (your tool will be stored inside)
-5. configure attributes to perfect your tool
+1. Craft Jewel Purposer (use JEI to see recipe)
+2. Put your jewels inside (works with hoppers)
+3. Create new purpose with "+" or navigate to existing one with '<' and '>' buttons
+4. Insert your tool (your tool will be stored inside)
+5. Configure attributes to perfect your tool
 
--   TAB, CTRL+TAB or mouse click to select value to edit
--   arrow-left, arrow-right or mouse click to select digit to edit
--   0-9, to set digit to specific value
--   arrow-up or plus to increment digit
--   arrow-down or minus to decrement digit
+    - `TAB`, `CTRL+TAB` or mouse click to select value to edit
+    - `Left Arrow`, `Right Arrow` or mouse click to select digit to edit
+    - `0-9`, to set digit to specific value
+    - `Up Arrow` or `Plus` to increment digit
+    - `Down Arrow` or `Minus` to decrement digit
 
-6. click hammer to apply jewels
-7. take back your tool
+6. Click hammer button to apply jewels
+7. Take back your tool
 
 ### Cutting
 
