@@ -53,9 +53,9 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
     private void composeMainInv(JewelPurposerScreen screen, int midX, int midY){
         screen.background((it)->{
             it.texture=()->new ResourceLocation("vaultjp:textures/gui/jewel_inv.png");
-            it.srcRect=()->new Rect2i(0,0,158,158);
+            it.srcRect=()->new Rect2i(0,0,181,158);
             it.pos = ()->new Pair<>(midX+20,midY-115);
-            it.atlasSize = ()->new Pair<>(158,158);
+            it.atlasSize = ()->new Pair<>(181,158);
         });
 
 
@@ -76,7 +76,7 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
         screen.button((dsl)->{
             dsl.texture=()->new ResourceLocation("vaultjp:textures/gui/extra.png");
             dsl.srcRect=()->new Rect2i(36,0,18,18);
-            dsl.pos = ()->new Pair<>(midX+180,midY-108);
+            dsl.pos = ()->new Pair<>(midX+175,midY-108);
             dsl.atlasSize = ()->new Pair<>(96,96);
             dsl.onClick = ()->{
                 jewelInvScroll=Integer.max(0,jewelInvScroll-64);
@@ -84,12 +84,12 @@ public class JewelStorageComposition implements Composition<JewelPurposerScreen>
         });
         screen.text((dsl)->{
             dsl.text = ()->new TextComponent( (jewelInvScroll+64)/64+"/"+pageCount);
-            dsl.pos = (width)->new Pair<>(midX+190-width/2,midY-115+40);
+            dsl.pos = (width)->new Pair<>(midX+185-width/2,midY-115+40);
         });
         screen.button((dsl)->{
             dsl.texture=()->new ResourceLocation("vaultjp:textures/gui/extra.png");
             dsl.srcRect=()->new Rect2i(36,18,18,18);
-            dsl.pos = ()->new Pair<>(midX+180,midY-115+61);
+            dsl.pos = ()->new Pair<>(midX+175,midY-115+61);
             dsl.atlasSize = ()->new Pair<>(96,96);
             dsl.onClick = ()->{
                 jewelInvScroll=Integer.min((pageCount-1)*64,jewelInvScroll+64);
