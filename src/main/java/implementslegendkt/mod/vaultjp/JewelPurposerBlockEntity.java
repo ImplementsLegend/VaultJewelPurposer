@@ -170,60 +170,7 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
     private int mod = 0;
     public void tick() {
         if(level.isClientSide())return;
-        if(level.getGameRules().getBoolean(Vaultjp.ALLOW_CUTTING)) {
-            mod = (mod + 1) % 16;
-            var range = ModConfigs.VAULT_JEWEL_CUTTING_CONFIG.getJewelCuttingRange();
-            for (int i = mod; i < JewelPurposerContainer.JEWEL_COUNT_MAX; i += 144) for(var i2=0;i2<8;i2++){
-                var slotIndex = i+i2;
-                if (inventory.getItem(slotIndex).isEmpty()) continue;
-                var item = inventory.removeItemNoUpdate(slotIndex);
-                if (!(item.getItem() instanceof JewelItem)) {
-                    inventory.setItem(slotIndex, item);
-                    continue;
-                }
-                var tag = item.getOrCreateTag();
-                var cuts = tag.getInt("freeCuts");
-                if (cuts < 3) {
-                    tag = tag.copy();
-                    var data = VaultGearData.read(item);
-                    var jewelSize = data.getModifiers(ModGearAttributes.JEWEL_SIZE, VaultGearData.Type.ALL);
-                    for (var cuts_ = cuts; cuts_ < 3 && jewelSize.stream().anyMatch((it) -> it.getValue() > 10); cuts_++) {
-                        for (var sizeInstance : jewelSize) {
-                            sizeInstance.setValue(Integer.max(10, sizeInstance.getValue() - range.getRandom()));
-                        }
-                    }
-                    tag.putInt("freeCuts", 3);
-                    item.setTag(tag);
-                    data.write(item);
-                }
-                inventory.setItem(slotIndex, item);
-                tryRecycleJewel(slotIndex);//if jewels with all free cuts spent are added, they won't be recycled by this; won't fix
-
-            }
-        } else disposeBad();
-    }
-    @SuppressWarnings("ConstantValue")
-    private void tryRecycleJewel(int slot){
-        if(purposes.isEmpty() ||
-                slot<0 ||
-                slot>= JewelPurposerContainer.JEWEL_COUNT_MAX
-            ) return;
-        var jewel = inventory.getItem(slot);
-        if(purposes.stream().anyMatch((purpose)->!purpose.isBad(jewel)) || !(jewel.getItem() instanceof JewelItem))return;
-
-        var next = level.getBlockEntity(worldPosition.below());
-        if(next==null) return;
-        var cap = next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,Direction.UP).orElse(next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null));
-        if(cap ==null) return;
-        var targetSlots = cap.getSlots();
-        var stack = inventory.getItem(slot);
-        for (var targetSlot = 0;targetSlot<targetSlots && !stack.isEmpty();targetSlot++) {
-            stack=cap.insertItem(targetSlot,stack,false);
-        }
-        if (stack.isEmpty()) {//assuming 1 item per slot
-            inventory.removeItemNoUpdate(slot);
-            inventory.setChanged();
-        }
+        disposeBad();
     }
 
     @SuppressWarnings("ConstantValue")
