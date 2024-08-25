@@ -226,12 +226,40 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
         }
     }
 
+    @SuppressWarnings("ConstantValue")
+    private boolean tryRecycleJewel(int slot, IItemHandler cap){
+        if(purposes.isEmpty() ||
+                slot<0 ||
+                slot>= JewelPurposerContainer.JEWEL_COUNT_MAX
+        ) return false;
+        var jewel = inventory.getItem(slot);
+        if(purposes.stream().anyMatch((purpose)->!purpose.isBad(jewel)) || !(jewel.getItem() instanceof JewelItem))return true;
+
+        var targetSlots = cap.getSlots();
+        var stack = inventory.getItem(slot);
+        for (var targetSlot = 0;targetSlot<targetSlots && !stack.isEmpty();targetSlot++) {
+            stack=cap.insertItem(targetSlot,stack,false);
+        }
+        if (stack.isEmpty()) {//assuming 1 item per slot
+            inventory.removeItemNoUpdate(slot);
+            inventory.setChanged();
+        } else return false;
+        return true;
+    }
+
     public void disposeBad() {
         if(purposes.isEmpty()){
             return;
         }
+
+
+        var next = level.getBlockEntity(worldPosition.below());
+        if(next==null) return;
+        var cap = next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,Direction.UP).orElse(next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null));
+        if(cap ==null) return;
+
         for (int i = 0; i <JewelPurposerContainer.JEWEL_COUNT_MAX; i++) {
-            tryRecycleJewel(i);
+            if (!tryRecycleJewel(i,cap)) break;
         }
     }
 
