@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import oshi.util.tuples.Pair;
 
 import java.util.ArrayList;
@@ -39,7 +40,8 @@ public class SlotViewDSL implements View {
         public <S extends DecentScreen<S,?>> void renderViews(S screen, PoseStack stack, int cursorX, int cursorY) {
             for (var view:views) {
                 var slot = view.slot.get();
-                var itemStack = view.mapItem.apply((screen.menu.slots.size() > slot && slot>=0)?screen.menu.getSlot(slot).getItem():ItemStack.EMPTY);
+                var oldItemStack = (screen.menu.slots.size() > slot && slot>=0)?screen.menu.getSlot(slot).getItem():ItemStack.EMPTY;
+                var itemStack = (oldItemStack.getCount()==0 || oldItemStack.is(Items.AIR))?oldItemStack:view.mapItem.apply(oldItemStack);//don't apply to empty items!
                 var position = view.position.get();
                 renderFloatingItem(screen,itemStack, position.getA(), position.getB(), null);
 
