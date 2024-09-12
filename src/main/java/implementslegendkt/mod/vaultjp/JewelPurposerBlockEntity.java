@@ -167,7 +167,6 @@ public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvide
 
     }
 
-    private int mod = 0;
     public void tick() {
         if(level.isClientSide())return;
         disposeBad();

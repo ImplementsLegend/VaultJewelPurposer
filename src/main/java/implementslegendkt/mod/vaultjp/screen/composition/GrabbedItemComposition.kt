@@ -1,22 +1,24 @@
-package implementslegendkt.mod.vaultjp.screen.composition;
+package implementslegendkt.mod.vaultjp.screen.composition
 
-import implementslegendkt.mod.vaultjp.screen.Composition;
-import implementslegendkt.mod.vaultjp.screen.DecentScreen;
-import net.minecraft.client.Minecraft;
-import oshi.util.tuples.Pair;
+import implementslegendkt.mod.screenlegends.Composition
+import implementslegendkt.mod.screenlegends.DecentScreen
+import implementslegendkt.mod.screenlegends.view.SlotViewDSL
+import net.minecraft.client.Minecraft
+import net.minecraft.world.item.ItemStack
+import oshi.util.tuples.Pair
 
-public class GrabbedItemComposition<T extends DecentScreen<T,?>>  implements Composition<T> {
-    @Override
-    public void compose(T screen, int midX, int midY) {
-        screen.viewSlot((dsl)->{
-            dsl.shouldHighlight = (should)->false;
-            dsl.mapItem=(nul)->screen.menu.getCarried();
-            dsl.position=()->{
-
-                int i = (int)(Minecraft.getInstance().mouseHandler.xpos() * (double)Minecraft.getInstance().getWindow().getGuiScaledWidth() / (double)Minecraft.getInstance().getWindow().getScreenWidth()-8);
-                int j = (int)(Minecraft.getInstance().mouseHandler.ypos() * (double)Minecraft.getInstance().getWindow().getGuiScaledHeight() / (double)Minecraft.getInstance().getWindow().getScreenHeight()-8);
-                return new Pair<>(i,j);
-            };
-        });
+class GrabbedItemComposition<T : DecentScreen<T, *>> : Composition<T> {
+    override fun compose(screen: T, midX: Int, midY: Int) {
+        screen.viewSlot {
+            shouldHighlight = { should: Boolean? -> false }
+            mapItem = { screen.menu.carried }
+            position = {
+                val i =
+                    (Minecraft.getInstance().mouseHandler.xpos() * Minecraft.getInstance().window.guiScaledWidth.toDouble() / Minecraft.getInstance().window.screenWidth.toDouble() - 8).toInt()
+                val j =
+                    (Minecraft.getInstance().mouseHandler.ypos() * Minecraft.getInstance().window.guiScaledHeight.toDouble() / Minecraft.getInstance().window.screenHeight.toDouble() - 8).toInt()
+                i to j
+            }
+        }
     }
 }

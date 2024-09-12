@@ -1,5 +1,7 @@
 package implementslegendkt.mod.vaultjp.screen;
 
+import implementslegendkt.mod.screenlegends.Composition;
+import implementslegendkt.mod.screenlegends.DecentScreen;
 import implementslegendkt.mod.vaultjp.JewelPurpose;
 import implementslegendkt.mod.vaultjp.JewelPurposerContainer;
 import implementslegendkt.mod.vaultjp.screen.composition.*;

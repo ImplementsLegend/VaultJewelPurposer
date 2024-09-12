@@ -33,8 +33,6 @@ public class Vaultjp {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static GameRules.Key<GameRules.BooleanValue> ALLOW_CUTTING = register("vaultJpAllowCutting", GameRules.Category.MISC, ModGameRules.booleanRule(false));
-    public static GameRules.Key<GameRules.BooleanValue> ALLOW_RECYCLING = register("vaultJpAllowRecycling", GameRules.Category.MISC, ModGameRules.booleanRule(false));
 
     public Vaultjp() {
         MinecraftForge.EVENT_BUS.register(this);
@@ -56,25 +54,21 @@ public class Vaultjp {
         public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
             JewelPurposerBlock.INSTANCE.setRegistryName("vaultjp","jewel_purpuser");
             blockRegistryEvent.getRegistry().register(JewelPurposerBlock.INSTANCE);
-            LOGGER.debug("HELLO from Register Block");
         }
         @SubscribeEvent
         public static void onBlockItemssRegistry(final RegistryEvent.Register<Item> blockRegistryEvent) {
             JewelPurposerBlock.ITEM.setRegistryName("vaultjp","jewel_purpuser");
             blockRegistryEvent.getRegistry().register(JewelPurposerBlock.ITEM);
-            LOGGER.debug("HELLO from Register Item");
         }
         @SubscribeEvent
         public static void onBlockEntitiesRegistry(final RegistryEvent.Register<BlockEntityType<?>> blockRegistryEvent) {
             JewelPurposerBlockEntity.TYPE.setRegistryName("vaultjp","jewel_purpuser_entity");
             blockRegistryEvent.getRegistry().register(JewelPurposerBlockEntity.TYPE);
-            LOGGER.debug("HELLO from Register Entity");
         }
         @SubscribeEvent
         public static void onBlockMenuRegistry(final RegistryEvent.Register<MenuType<?>> blockRegistryEvent) {
             JewelPurposerContainer.MENU_TYPE.setRegistryName("vaultjp","jewel_purpuser_container");
             blockRegistryEvent.getRegistry().register(JewelPurposerContainer.MENU_TYPE);
-            LOGGER.debug("HELLO from Register Menus");
         }
     }
 }

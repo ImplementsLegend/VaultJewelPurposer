@@ -1,42 +1,45 @@
-package implementslegendkt.mod.vaultjp.screen.composition;
+package implementslegendkt.mod.vaultjp.screen.composition
 
-import implementslegendkt.mod.vaultjp.screen.Composition;
-import implementslegendkt.mod.vaultjp.screen.DecentScreen;
-import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
-import oshi.util.tuples.Pair;
+import implementslegendkt.mod.screenlegends.Composition
+import implementslegendkt.mod.screenlegends.DecentScreen
+import implementslegendkt.mod.screenlegends.view.BackgroundViewDSL
+import implementslegendkt.mod.screenlegends.view.SlotViewDSL
+import net.minecraft.client.renderer.Rect2i
+import net.minecraft.resources.ResourceLocation
+import oshi.util.tuples.Pair
 
-public record PlayerInventoryComposition<S extends DecentScreen<S, ?>>(int hotbarStart, int mainInvStart,int x, int y) implements Composition<S> {
-    @Override
-    public void compose(S screen, int midX, int midY) {
-
-        screen.background((it)->{
-            it.texture=()->new ResourceLocation("vaultjp:textures/gui/player_base_inv.png");
-            it.srcRect=()->new Rect2i(0,0,176,90);
-            it.atlasSize = ()->new Pair(176,90);
-            it.pos =( )->new Pair(midX+this.x,midY+this.y);
-        });
-
-
-        for(var slot = 0;slot<27;slot++){
-            final var x = slot%9;
-            final var y = slot/9;
-            final var slotCopy = slot;
-            screen.viewSlot((dsl)->{
-                dsl.slot=()->slotCopy+ mainInvStart;
-                dsl.position=()->new Pair<>(x*18+8+this.x+midX,y*18+8+midY+this.y);
-
-            });
+@JvmRecord
+data class PlayerInventoryComposition<S : DecentScreen<*, *>>(
+    val hotbarStart: Int,
+    val mainInvStart: Int,
+    val x: Int,
+    val y: Int
+) : Composition<S> {
+    override fun compose(screen: S, midX: Int, midY: Int) {
+        screen.background {
+            texture = { ResourceLocation("vaultjp:textures/gui/player_base_inv.png") }
+            srcRect = { Rect2i(0, 0, 176, 90) }
+            atlasSize = { 176 to 90 }
+            pos = { midX + x to midY + y }
         }
-        for(var slot = 0;slot<9;slot++){
-            final var x = slot;
-            final var slotCopy = slot;
-            screen.viewSlot((dsl)->{
-                dsl.slot=()->slotCopy+ hotbarStart;
-                dsl.position=()->new Pair<>(x*18+8+this.x+midX,66+this.y+midY);
 
-            });
+
+        for (slot in 0..26) {
+            val x = slot % 9
+            val y = slot / 9
+            val slotCopy = slot
+            screen.viewSlot {
+                this.slot = { slotCopy + mainInvStart }
+                position = {x * 18 + 8 + this@PlayerInventoryComposition.x + midX to y * 18 + 8 + midY + this@PlayerInventoryComposition.y }
+            }
+        }
+        for (slot in 0..8) {
+            val x = slot
+            val slotCopy = slot
+            screen.viewSlot {
+                this.slot = { slotCopy + hotbarStart }
+                position = { x * 18 + 8 + this@PlayerInventoryComposition.x + midX to 66 + this@PlayerInventoryComposition.y + midY }
+            }
         }
     }
-
 }
