@@ -60,7 +60,7 @@ class JewelStorageComposition(
             screen.viewSlot {  //todo slot highlight
                 slot = { jewelOrder[slotCopy + jewelInvScroll]!!.slotPointer + firstSlot }
                 position = { x * 18 + 28 + midX to y * 18 - 107 + midY }
-                mapItem = { item: ItemStack? ->
+                mapItem = { item ->
                     if(item?.item is JewelItem )
                     appendUsefulnessToLore(
                         item,
@@ -126,8 +126,6 @@ class JewelStorageComposition(
 
         pageCount = Integer.max(1, (size + 63) / 64)
 
-
-
         jewelOrder = arrayOfNulls(64 * pageCount)
 
         var orderIndex = 0
@@ -151,35 +149,6 @@ class JewelStorageComposition(
         dirty = false
     }
 
-    /*
-    private int[] findChanged(JewelPurposerBlockEntity tile) {
-
-        var cont = tile.getInventory().getOverSizedContents();
-        var size = 0;
-        for (var entry:cont) if((!entry.overSizedStack().isEmpty()) &&(entry.overSizedStack().getItem() instanceof JewelItem))size++;
-
-        var jewelIndicesNew = new int[size+jewelIndices.length];
-        var jewelIndex = 0;
-        var jewelOldIndex = 0;
-        for (int contentIndex = 0; contentIndex < cont.size(); contentIndex++) {
-            if(cont.get(contentIndex).overSizedStack().getItem() instanceof JewelItem){
-                while(contentIndex>jewelIndices[jewelOldIndex]){
-                    jewelIndicesNew[jewelIndex]=jewelIndices[jewelOldIndex];
-                    jewelOldIndex++;
-                    jewelIndex++;
-                }
-                if(contentIndex<jewelIndices[jewelOldIndex]){
-                    jewelIndicesNew[jewelIndex]=contentIndex;
-                    jewelIndex++;
-                }
-                if(contentIndex==jewelIndices[jewelOldIndex]){
-                    jewelOldIndex++;
-                }
-            }
-        }
-        return Arrays.copyOf(jewelIndicesNew,jewelIndex);
-    }
-*/
     fun getJewels(tile: JewelPurposerBlockEntity): IntArray {
         var size = 0
         val maxSize = maxSize.asInt

@@ -20,11 +20,10 @@ class JewelPurposerScreen(menu: JewelPurposerContainer, p_96550_: Component?) :
         val tile = menu.tileEntity
         val thiz = this
 
-        if (tile.purposes.isEmpty()) {
-            tile.purposes.add(JewelPurpose(ArrayList(), -1.0, true, "" + 0))
-            tile.syncToServer()
+        tile.takeIf { it.purposes.isEmpty() }?.apply {
+            purposes.add(JewelPurpose(arrayListOf(),-1.0,true,0.toString()))
+            syncToServer()
         }
-
         purposeConfigurator = PurposeConfiguratorComposition { thiz.jewelStorage.markDirty() }
         jewelStorage = JewelStorageComposition(
             36,
@@ -35,13 +34,11 @@ class JewelPurposerScreen(menu: JewelPurposerContainer, p_96550_: Component?) :
         tool = ToolComposition { jewelStorage.getJewels(this@ToolComposition) }
     }
 
-    override fun createCompositions(): List<Composition<JewelPurposerScreen>> {
-        return listOf(
-            PlayerInventoryComposition(27, 0, -176 / 2, 52),
-            jewelStorage,
-            purposeConfigurator,
-            tool,
-            GrabbedItemComposition()
-        )
-    }
+    override fun createCompositions(): List<Composition<JewelPurposerScreen>> = listOf(
+        PlayerInventoryComposition(27, 0, -176 / 2, 52),
+        jewelStorage,
+        purposeConfigurator,
+        tool,
+        GrabbedItemComposition()
+    )
 }

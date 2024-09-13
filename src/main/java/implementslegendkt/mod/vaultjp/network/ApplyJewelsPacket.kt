@@ -30,11 +30,6 @@ data class ApplyJewelsPacket(val purposerPosition: BlockPos, val jewels: IntArra
     }
 
     companion object {
-        @JvmStatic
-        fun decode(friendlyByteBuf: FriendlyByteBuf): ApplyJewelsPacket {
-            val pos = friendlyByteBuf.readBlockPos()
-            val jewels = friendlyByteBuf.readVarIntArray()
-            return ApplyJewelsPacket(pos, jewels)
-        }
+        fun decode(friendlyByteBuf: FriendlyByteBuf) = ApplyJewelsPacket(friendlyByteBuf.readBlockPos(), friendlyByteBuf.readVarIntArray())
     }
 }

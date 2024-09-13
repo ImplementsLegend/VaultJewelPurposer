@@ -55,13 +55,10 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
       ) }?: PurposerExternalStorage(externalUUID,this)).also { data=it }
     }
 
-    override fun getDisplayName(): Component {
-        return TextComponent("Jewel Purposer")
-    }
+    override fun getDisplayName(): Component = TextComponent("Jewel Purposer")
 
-
-    override fun createMenu(p_39954_: Int, p_39955_: Inventory, p_39956_: Player): AbstractContainerMenu? {
-        return this.getLevel()?.let {
+    override fun createMenu(p_39954_: Int, p_39955_: Inventory, p_39956_: Player): AbstractContainerMenu? =
+        this.getLevel()?.let {
             JewelPurposerContainer(
                 p_39954_,
                 it,
@@ -69,13 +66,10 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
                 p_39956_.inventory
             )
         }
-    }
 
-
-    override fun <T> getCapability(cap: Capability<T>, side: Direction?): LazyOptional<T> {
-        if (!this.remove && cap === CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return handler.cast()
-        return super.getCapability(cap, side)
-    }
+    override fun <T> getCapability(cap: Capability<T>, side: Direction?): LazyOptional<T> =
+        if (!this.remove && cap === CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) handler.cast()
+            else super.getCapability(cap, side)
 
     override fun invalidateCaps() {
         super.invalidateCaps()
@@ -105,28 +99,22 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
     }
 
 
-    override fun getUpdateTag(): CompoundTag {
-        return this.saveWithoutMetadata()
-    }
+    override fun getUpdateTag(): CompoundTag = this.saveWithoutMetadata()
 
-    override fun getUpdatePacket(): ClientboundBlockEntityDataPacket? {
-        return ClientboundBlockEntityDataPacket.create(this)
-    }
+    override fun getUpdatePacket(): ClientboundBlockEntityDataPacket? = ClientboundBlockEntityDataPacket.create(this)
 
 
-    fun stillValid(player: Player?): Boolean {
-        return this.level != null && (level!!.getBlockEntity(this.worldPosition) === this) && inventory.stillValid(
-            player
-        )
-    }
+    fun stillValid(player: Player?): Boolean =
+        this.level != null &&
+                (level!!.getBlockEntity(this.worldPosition) === this) &&
+                inventory.stillValid(player)
 
 
-    fun applyJewelsMock(tool: ItemStack, jewels: IntArray): ItemStack {
-        for (jew in jewels) {
-            if (jew < 0 || jew > JewelPurposerContainer.JEWEL_COUNT_MAX) break
-            VaultJewelApplicationStationTileEntity.applyJewel(tool, inventory.getItem(jew))
-        }
-        return tool
+    fun applyJewelsMock(tool: ItemStack, jewels: IntArray) = jewels.fold(tool){
+        toolAcc,jewelIndex->
+        if(jewelIndex !in 0 until JewelPurposerContainer.JEWEL_COUNT_MAX) return@applyJewelsMock toolAcc
+        VaultJewelApplicationStationTileEntity.applyJewel(toolAcc,inventory.getItem(jewelIndex))
+        toolAcc
     }
 
     fun applyJewels(jewels: IntArray) {
@@ -165,19 +153,14 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
     }
 
     private fun tryRecycleJewel(slot: Int, cap: IItemHandler): Boolean {
-        if (purposes.isEmpty() || slot < 0 || slot >= JewelPurposerContainer.JEWEL_COUNT_MAX
-        ) return false
+        if (purposes.isEmpty() || slot < 0 || slot >= JewelPurposerContainer.JEWEL_COUNT_MAX) return false
         val jewel = inventory.getItem(slot)
-        if (purposes.stream()
-                .anyMatch { purpose: JewelPurpose -> !purpose.isBad(jewel) } || jewel.item !is JewelItem
-        ) return true
+        if (purposes.any { !it.isBad(jewel) } || jewel.item !is JewelItem) return true
 
-        val targetSlots = cap.slots
         var stack = inventory.getItem(slot)
-        var targetSlot = 0
-        while (targetSlot < targetSlots && !stack.isEmpty) {
+        for (targetSlot in 0 until cap.slots) {
+            if (stack.isEmpty) break
             stack = cap.insertItem(targetSlot, stack, false)
-            targetSlot++
         }
         if (stack.isEmpty) { //assuming 1 item per slot
             inventory.removeItemNoUpdate(slot)
@@ -187,28 +170,19 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
     }
 
     fun disposeBad() {
-        if (purposes.isEmpty()) {
-            return
-        }
-
+        if (purposes.isEmpty()) return
 
         val next = level!!.getBlockEntity(worldPosition.below()) ?: return
         val cap = next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, Direction.UP)
             .orElse(next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null))
             ?: return
 
-        for (i in 0 until JewelPurposerContainer.JEWEL_COUNT_MAX) {
-            if (!tryRecycleJewel(i, cap)) break
+        repeat (JewelPurposerContainer.JEWEL_COUNT_MAX) {
+            if (!tryRecycleJewel(it, cap)) return
         }
     }
 
-    fun syncToServer() {
-        Channel.CHANNEL.sendToServer(
-            UpdatePurposesPacket(
-                blockPos, purposes
-            )
-        )
-    }
+    fun syncToServer() = Channel.CHANNEL.sendToServer(UpdatePurposesPacket(blockPos, purposes))
 
     fun deleteExternalData() {
         data?.deleted=true

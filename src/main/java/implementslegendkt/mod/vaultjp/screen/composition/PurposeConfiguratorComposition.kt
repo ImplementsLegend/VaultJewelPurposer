@@ -23,9 +23,8 @@ import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
 
-class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composition<JewelPurposerScreen> {
+class PurposeConfiguratorComposition(private val markDirty: ()->Unit) : Composition<JewelPurposerScreen> {
     private var currentPurposeIdx = 0
-    @JvmField
     var sizeLimit: Int = 300
 
     override fun compose(screen: JewelPurposerScreen, midX: Int, midY: Int) {
@@ -40,7 +39,7 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
             atlasSize = { 96 to 96 }
             srcRect = { Rect2i(36, 54, 18, 18) }
             onClick = {
-                markDirty.run()
+                markDirty()
                 currentPurposeIdx = Integer.max(0, currentPurposeIdx - 1)
             }
             pos = { midX - 144 to midY - 122 }
@@ -48,8 +47,7 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
 
 
         screen.text {
-            text =
-                { TextComponent(if (screen.menu.tileEntity.purposes.isEmpty()) "_" else ("" + (currentPurposeIdx + 1))) }
+            text = { TextComponent(if (screen.menu.tileEntity.purposes.isEmpty()) "_" else ("" + (currentPurposeIdx + 1))) }
             pos = { width: Int -> midX - 116 - width / 2 to midY - 116 }
         }
         screen.button {
@@ -57,7 +55,7 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
             atlasSize = { 96 to 96 }
             srcRect = { Rect2i(0, 66, 18, 18) }
             onClick = {
-                markDirty.run()
+                markDirty()
                 currentPurposeIdx =
                     Integer.max(0, Integer.min(screen.menu.tileEntity.purposes.size - 1, currentPurposeIdx + 1))
             }
@@ -93,11 +91,11 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
                 screen,
                 midX - 197,
                 midY + offset - 96,
-                p.translationKey(),
+                p.translationKey,
                 { getAttrUsefulness(tile, p) },
-                { newValue: Double? ->
-                    markDirty.run()
-                    modifyUsefulness(tile, p) { unused: Double? -> newValue }
+                { newValue ->
+                    markDirty()
+                    modifyUsefulness(tile, p) { newValue }
                 },
                 p.normalization
             ) //screen.getAttrUsefulness(p));
@@ -109,7 +107,7 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
             midY + i - 96,
             "vaultjp.config_entry.usefulness",
             { if (tile.purposes.isEmpty()) Double.NaN else currentPurpose(tile).disposeThreshold },
-            { newValue: Double? -> modifyDisposeThreshold(tile) { unused: Double? -> newValue } },
+            { newValue -> modifyDisposeThreshold(tile) { newValue } },
             1.0
         ) //screen.getAttrUsefulness(p));
         i += 12
@@ -119,7 +117,7 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
             midY + i - 96,
             "vaultjp.config_entry.max_size",
             { sizeLimit.toDouble() },
-            { newValue: Double -> sizeLimit = newValue.toInt() },
+            { sizeLimit = it.toInt() },
             1.0
         ) //screen.getAttrUsefulness(p));
         i += 12
@@ -141,8 +139,8 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
         }*/
         screen.text {
             text = {
-                TranslatableComponent("$label.label").withStyle { style: Style ->
-                    style.withHoverEvent(
+                TranslatableComponent("$label.label").withStyle {
+                    it.withHoverEvent(
                         HoverEvent(
                             HoverEvent.Action.SHOW_TEXT, TranslatableComponent(
                                 "$label.hover"
@@ -151,7 +149,7 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
                     )
                 }
             }
-            pos = { width: Int? -> x to y }
+            pos = { x to y }
         }
         screen.intBox {
             texture = { ResourceLocation("vaultjp:textures/gui/extra.png") }
@@ -159,72 +157,31 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
             srcRect = { Rect2i(0, 84, 72, 12) }
             pos = { x + 98 to y - 2 }
 
-            textPos = { width: Int -> x + 169 - width to y }
+            textPos = { width -> x + 169 - width to y }
 
 
             this.valueGetter = { (normalization * valueGetter.get()).toInt() }
-            this.valueSetter = { it: Int -> valueSetter.accept(it / normalization) }
+            this.valueSetter = { valueSetter.accept(it / normalization) }
         }
-
-        /*
-        screen.button((dsl) -> {
-            buttonBase.accept(dsl);
-            dsl.onClick = ()-> valueSetter.accept(valueGetter.get()*0.1);
-            dsl.srcRect = () -> new Rect2i(0, 38, 10, 10);
-            dsl.pos = () -> new Pair<>(x+92, y-1);
-        });
-        screen.button((dsl) -> {
-            buttonBase.accept(dsl);
-            dsl.onClick = ()-> valueSetter.accept( valueGetter.get()-1);
-            dsl.srcRect = () -> new Rect2i(0, 48, 10, 10);
-            dsl.pos = () -> new Pair<>(x+103, y-1);
-        });
-        screen.text((dsl)->{
-            dsl.text=()->new TextComponent("%.2f".formatted(valueGetter.get()));
-            dsl.pos = (width) -> new Pair<>(x+114, y);
-        });
-
-        screen.button((dsl) -> {
-            buttonBase.accept(dsl);
-            dsl.onClick = ()-> valueSetter.accept( valueGetter.get()+1);
-            dsl.srcRect = () -> new Rect2i(0, 18, 10, 10);
-            dsl.pos = () -> new Pair<>(x+148, y-1);
-        });
-        screen.button((dsl) -> {
-            buttonBase.accept(dsl);
-            dsl.onClick = ()-> valueSetter.accept( valueGetter.get()*10);
-            dsl.srcRect = () -> new Rect2i(0, 28, 10, 10);
-            dsl.pos = () -> new Pair<>(x+159, y-1);
-        });*/
     }
 
-    fun getJewelUsefulness(stack: ItemStack?, tile: JewelPurposerBlockEntity): Double {
-        return if (tile.purposes.isEmpty() || stack?.item !is JewelItem) Double.NaN
-        else currentPurpose(tile).getJewelUsefulness(stack)
-    }
+    fun getJewelUsefulness(stack: ItemStack?, tile: JewelPurposerBlockEntity): Double =
+        if (tile.purposes.isEmpty() || stack?.item !is JewelItem) Double.NaN else currentPurpose(tile).getJewelUsefulness(stack)
 
 
     private fun getAttrUsefulness(tile: JewelPurposerBlockEntity, p: JewelAttribute): Double {
         if (tile.purposes.isEmpty()) return Double.NaN
-        var idx = 0
         val purpose = currentPurpose(tile)
-        for (x in purpose.values) {
-            if (x.attribute == p) break
-            idx++
-        }
-        return if (purpose.values.size > idx) purpose.values[idx].multiplier else 0.0
+        val idx = purpose.values.withIndex().firstOrNull{(_,purpose)->purpose.attribute==p}?.index?:purpose.values.size
+        return if (idx in purpose.values.indices) purpose.values[idx].multiplier else 0.0
     }
 
 
     private fun modifyUsefulness(tile: JewelPurposerBlockEntity, p: JewelAttribute, mod: Function<Double, Double?>) {
         if (tile.purposes.isEmpty()) return
-        var idx = 0
         val purpose = currentPurpose(tile)
-        for (x in purpose.values) {
-            if (x.attribute == p) break
-            idx++
-        }
-        if (purpose.values.size > idx) {
+        val idx = purpose.values.withIndex().firstOrNull{(_,purpose)->purpose.attribute==p}?.index?:purpose.values.size
+        if (idx in purpose.values.indices) {
             val newUsefulness = mod.apply(purpose.values[idx].multiplier)
             purpose.values[idx] = AttributeUsefulness(p, newUsefulness!!)
         } else {
@@ -243,7 +200,5 @@ class PurposeConfiguratorComposition(private val markDirty: Runnable) : Composit
         tile.syncToServer()
     }
 
-    fun currentPurpose(tile: JewelPurposerBlockEntity): JewelPurpose {
-        return tile.purposes[currentPurposeIdx]
-    }
+    fun currentPurpose(tile: JewelPurposerBlockEntity) = tile.purposes[currentPurposeIdx]
 }

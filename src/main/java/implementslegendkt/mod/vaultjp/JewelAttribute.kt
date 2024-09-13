@@ -5,7 +5,7 @@ import iskallia.vault.init.ModGearAttributes
 
 enum class JewelAttribute(
     val attribute: VaultGearAttribute<out Number>,
-    private val translationKey: String,
+    val translationKey: String,
     val normalization: Double
 ) {
     MINING_SPEED(ModGearAttributes.MINING_SPEED, "vaultjp.attrib.mining_speed", 1.0),
@@ -16,15 +16,5 @@ enum class JewelAttribute(
     HAMMER_SIZE(ModGearAttributes.HAMMER_SIZE, "vaultjp.attrib.hammer", 1.0),
     ITEM_QUANTITY(ModGearAttributes.ITEM_QUANTITY, "vaultjp.attrib.item_quan", 0.005),
     ITEM_RARITY(ModGearAttributes.ITEM_RARITY, "vaultjp.attrib.item_rar", 0.005),
-    IMMORTALITY(ModGearAttributes.IMMORTALITY, "vaultjp.attrib.immor", 1.0),
-    ; // JEWEL_SIZE(ModGearAttributes.JEWEL_SIZE)
-    /*
-    MINING_SPEED(ModGearAttributes.SOULBOUND),
-    MINING_SPEED(ModGearAttributes.SMELTING),
-    MINING_SPEED(ModGearAttributes.PICKING),
-    MINING_SPEED(ModGearAttributes.PULVERIZING),*/
-
-    fun translationKey(): String {
-        return translationKey
-    }
+    IMMORTALITY(ModGearAttributes.IMMORTALITY, "vaultjp.attrib.immor", 1.0)
 }

@@ -9,7 +9,6 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.phys.Vec3
 import net.minecraftforge.network.NetworkDirection
 import net.minecraftforge.network.NetworkEvent
-import java.util.*
 import java.util.function.Supplier
 
 @JvmRecord
@@ -17,9 +16,7 @@ data class UpdatePurposesPacket(val purposerPosition: BlockPos, val purposes: Li
     fun encode(friendlyByteBuf: FriendlyByteBuf) {
         friendlyByteBuf.writeBlockPos(purposerPosition)
         friendlyByteBuf.writeInt(purposes.size)
-        for (purpose in purposes) {
-            friendlyByteBuf.writeNbt(JewelPurpose.writeNBT(purpose))
-        }
+        purposes.forEach { friendlyByteBuf.writeNbt(JewelPurpose.writeNBT(it)) }
     }
 
     fun handle(contextSupplier: Supplier<NetworkEvent.Context>) {
@@ -47,14 +44,12 @@ data class UpdatePurposesPacket(val purposerPosition: BlockPos, val purposes: Li
     }
 
     companion object {
-        @JvmStatic
-        fun decode(friendlyByteBuf: FriendlyByteBuf): UpdatePurposesPacket {
-            val pos = friendlyByteBuf.readBlockPos()
-            val purposeCount = friendlyByteBuf.readInt()
-            val purposes = Array(purposeCount){
-                JewelPurpose.readNBT(friendlyByteBuf.readNbt()?:CompoundTag())
-            }
-            return UpdatePurposesPacket(pos, purposes.asList())
-        }
+        fun decode(friendlyByteBuf: FriendlyByteBuf): UpdatePurposesPacket =
+            UpdatePurposesPacket(
+                friendlyByteBuf.readBlockPos(),
+                List(friendlyByteBuf.readInt()) {
+                    JewelPurpose.readNBT(friendlyByteBuf.readNbt() ?: CompoundTag())
+                }
+            )
     }
 }

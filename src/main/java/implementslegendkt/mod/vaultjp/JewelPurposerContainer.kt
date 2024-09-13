@@ -43,7 +43,7 @@ class JewelPurposerContainer(windowId: Int, world: Level, private val tilePos: B
             this.addSlot(TabSlot(playerInventory, hotbarSlot, 58 + hotbarSlot * 18, 166))
         }
 
-        val invContainer: Container = tileEntity!!.inventory
+        val invContainer: Container = tileEntity.inventory
 
         repeat (256) {row->
             repeat(96) {column->
@@ -98,16 +98,20 @@ class JewelPurposerContainer(windowId: Int, world: Level, private val tilePos: B
                 return itemstack
             }
 
-            if (index in 0..26) {
-                if (!this.moveOverSizedItemStackTo(slotStack, slot, 27, 36, false)) {
+            when {
+                index in 0..26 -> {
+                    if (!this.moveOverSizedItemStackTo(slotStack, slot, 27, 36, false)) {
+                        return ItemStack.EMPTY
+                    }
+                }
+                index in 27..35 -> {
+                    if (!this.moveOverSizedItemStackTo(slotStack, slot, 0, 27, false)) {
+                        return ItemStack.EMPTY
+                    }
+                }
+                !this.moveOverSizedItemStackTo(slotStack, slot, 0, 36, false) -> {
                     return ItemStack.EMPTY
                 }
-            } else if (index in 27..35) {
-                if (!this.moveOverSizedItemStackTo(slotStack, slot, 0, 27, false)) {
-                    return ItemStack.EMPTY
-                }
-            } else if (!this.moveOverSizedItemStackTo(slotStack, slot, 0, 36, false)) {
-                return ItemStack.EMPTY
             }
 
             if (slotStack.count == 0) {
@@ -126,30 +130,28 @@ class JewelPurposerContainer(windowId: Int, world: Level, private val tilePos: B
         return itemstack
     }
 
-    override fun stillValid(player: Player): Boolean {
-        return this.tileEntity != null && tileEntity!!.stillValid(this.player)
-    }
+    override fun stillValid(player: Player): Boolean = tileEntity.stillValid(this.player)
 
 
     //speed up!
     override fun broadcastChanges() {
-        for (i in slots.indices) {
-            val itemstack = slots[i].item
-            val supplier: Supplier<ItemStack?> = Suppliers.memoize { itemstack }
-            (this as AccessorAbstractContainerMenu).callTriggerSlotListeners(i, itemstack, supplier)
-            (this as AccessorAbstractContainerMenu).callSynchronizeSlotToRemote(i, itemstack, supplier)
-        }
-        (this as AccessorAbstractContainerMenu).callSynchronizeCarriedToRemote()
+        (this as AccessorAbstractContainerMenu).apply {
 
-        for (j in (this as AccessorAbstractContainerMenu).dataSlots!!.indices) {
-            val dataslot =
-                (this as AccessorAbstractContainerMenu).dataSlots!![j]!!
-            val k = dataslot.get()
-            if (dataslot.checkAndClearUpdateFlag()) {
-                (this as AccessorAbstractContainerMenu).callUpdateDataSlotListeners(j, k)
+            for (i in slots.indices) {
+                val itemstack = slots[i].item
+                val supplier: Supplier<ItemStack?> = Suppliers.memoize { itemstack }
+                this.callTriggerSlotListeners(i, itemstack, supplier)
+                this.callSynchronizeSlotToRemote(i, itemstack, supplier)
             }
+            this.callSynchronizeCarriedToRemote()
 
-            (this as AccessorAbstractContainerMenu).callSynchronizeDataSlotToRemote(j, k)
+            for (j in this.dataSlots!!.indices) {
+                val dataslot = this.dataSlots!![j]!!
+                val k = dataslot.get()
+                if (dataslot.checkAndClearUpdateFlag()) this.callUpdateDataSlotListeners(j, k)
+
+                this.callSynchronizeDataSlotToRemote(j, k)
+            }
         }
     }
 

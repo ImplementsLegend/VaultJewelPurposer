@@ -44,12 +44,7 @@ object JewelPurposerBlock:Block(Properties.of(Material.STONE).destroyTime(6.5f))
         p_153212_: Level,
         p_153213_: BlockState,
         p_153214_: BlockEntityType<T>
-    ): BlockEntityTicker<T>? {
-        return BlockEntityTicker {
-            _,_,_,e->
-            (e as? JewelPurposerBlockEntity)?.tick()
-        }
-    }
+    ): BlockEntityTicker<T> = BlockEntityTicker { _, _, _, e -> (e as? JewelPurposerBlockEntity)?.tick() }
 
     override fun onRemove(
         p_60515_: BlockState,
@@ -68,8 +63,8 @@ object JewelPurposerBlock:Block(Properties.of(Material.STONE).destroyTime(6.5f))
         }
     }
 
-    override fun newBlockEntity(p_153215_: BlockPos, p_153216_: BlockState): BlockEntity? = JewelPurposerBlockEntity.TYPE.create(p_153215_,p_153216_)
+    override fun newBlockEntity(p_153215_: BlockPos, p_153216_: BlockState)= JewelPurposerBlockEntity.TYPE.create(p_153215_,p_153216_)
 
-    override fun getContainer(p_19242_: BlockState, p_19243_: LevelAccessor, p_19244_: BlockPos): WorldlyContainer? = (p_19243_.getBlockEntity(p_19244_) as? JewelPurposerBlockEntity)?.inventory
+    override fun getContainer(p_19242_: BlockState, p_19243_: LevelAccessor, p_19244_: BlockPos) = (p_19243_.getBlockEntity(p_19244_) as? JewelPurposerBlockEntity)?.inventory
 
 }

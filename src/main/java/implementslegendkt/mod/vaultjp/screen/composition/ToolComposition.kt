@@ -42,16 +42,12 @@ class ToolComposition(private val jewelListProvider: JewelPurposerBlockEntity.()
         screen.viewSlot {
             slot = { -1 }
             position = { midX - 8 to midY - 32 }
-            shouldHighlight = { unused: Boolean? -> false }
-            mapItem = itemMapper@{ empty: ItemStack? ->
+            shouldHighlight = { false }
+            mapItem = itemMapper@{
                 val tile = screen.menu.tileEntity
                 val inv = tile.inventory
                 val tool = inv.getItem(inv.containerSize - 1)
-                if (tool.item is ToolItem) {
-                    //todo
-
-                    return@itemMapper tile.applyJewelsMock(tool, tile.jewelListProvider())
-                } else return@itemMapper ItemStack.EMPTY
+                return@itemMapper if (tool.item is ToolItem) tile.applyJewelsMock(tool, tile.jewelListProvider()) else ItemStack.EMPTY
             }
         }
     }

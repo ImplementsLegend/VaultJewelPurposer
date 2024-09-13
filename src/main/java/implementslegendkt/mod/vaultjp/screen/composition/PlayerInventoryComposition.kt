@@ -30,7 +30,7 @@ data class PlayerInventoryComposition<S : DecentScreen<*, *>>(
             val slotCopy = slot
             screen.viewSlot {
                 this.slot = { slotCopy + mainInvStart }
-                position = {x * 18 + 8 + this@PlayerInventoryComposition.x + midX to y * 18 + 8 + midY + this@PlayerInventoryComposition.y }
+                position = { x * 18 + 8 + this@PlayerInventoryComposition.x + midX to y * 18 + 8 + midY + this@PlayerInventoryComposition.y }
             }
         }
         for (slot in 0..8) {

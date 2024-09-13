@@ -10,7 +10,7 @@ import oshi.util.tuples.Pair
 class GrabbedItemComposition<T : DecentScreen<T, *>> : Composition<T> {
     override fun compose(screen: T, midX: Int, midY: Int) {
         screen.viewSlot {
-            shouldHighlight = { should: Boolean? -> false }
+            shouldHighlight = { false }
             mapItem = { screen.menu.carried }
             position = {
                 val i =
