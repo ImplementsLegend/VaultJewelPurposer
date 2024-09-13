@@ -1,67 +1,77 @@
-package implementslegendkt.mod.vaultjp;
+package implementslegendkt.mod.vaultjp
 
-import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger;
-import iskallia.vault.gear.data.VaultGearData;
-import iskallia.vault.init.ModGearAttributes;
-import iskallia.vault.item.tool.JewelItem;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.world.item.ItemStack;
+import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger
+import iskallia.vault.gear.data.VaultGearData
+import iskallia.vault.init.ModGearAttributes
+import iskallia.vault.item.tool.JewelItem
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.ListTag
+import net.minecraft.nbt.Tag
+import net.minecraft.world.item.ItemStack
+import java.util.*
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+@JvmRecord
+data class JewelPurpose(
+    val values: MutableList<AttributeUsefulness>,
+    val disposeThreshold: Double,
+    val divideBySize: Boolean,
+    val name: String
+) {
+    fun getJewelUsefulness(jewel: ItemStack): Double {
+        if (jewel.item !is JewelItem) return Double.NEGATIVE_INFINITY
+        val data = VaultGearData.read(jewel)
 
-public record JewelPurpose(List<AttributeUsefulness> values, double disposeThreshold, boolean divideBySize,String name) {
-
-    private static final List<JewelAttribute> jewelAttributes = Arrays.asList(JewelAttribute.values());
-
-    public double getJewelUsefulness(ItemStack jewel){
-        if(!(jewel.getItem() instanceof JewelItem))return Double.NEGATIVE_INFINITY;
-        var data = VaultGearData.read(jewel);
-
-        var acc = 0.0;
-        for(var att:values){
-            acc+=att.getValue(data);
-        }
-        if(divideBySize) {
-            var size = data.get(ModGearAttributes.JEWEL_SIZE, VaultGearData.Type.ALL,  VaultGearAttributeTypeMerger.firstNonNull());
-            if(size==null || size<=0) return Double.POSITIVE_INFINITY;
-            return acc / size;
-        } else return acc;
+        val acc = values.sumOf { it.getValue(data) }
+        if (divideBySize) {
+            val size = data.get(
+                ModGearAttributes.JEWEL_SIZE,
+                VaultGearData.Type.ALL,
+                VaultGearAttributeTypeMerger.firstNonNull()
+            )
+            if (size == null || size <= 0) return Double.POSITIVE_INFINITY
+            return acc / size
+        } else return acc
     }
 
-    public static JewelPurpose readNBT(CompoundTag nbt){
-        var values =new ArrayList<AttributeUsefulness>();
-        if(nbt.get("usefulnesses") instanceof ListTag listTag) for (var tag:listTag) {
-            if(tag instanceof CompoundTag comtag)values.add(new AttributeUsefulness(jewelAttributes.get(comtag.getInt("attr")), comtag.getDouble("mul")));
-        }
-        return new JewelPurpose(values,nbt.getDouble("trash"),nbt.getBoolean("div"),nbt.getString("name"));
-    }
-    public static CompoundTag writeNBT(JewelPurpose purpose){
-        var result = new CompoundTag();
-        var list = new ListTag();
-
-        for (var attr:purpose.values) {
-            var usefulnessTag = new CompoundTag();
-
-            var attribute = jewelAttributes.indexOf(attr.attribute());
-            var multiplier = attr.multiplier();
-
-            usefulnessTag.putInt("attr", attribute);
-            usefulnessTag.putDouble("mul", multiplier);
-            list.add(usefulnessTag);
-
-        }
-        result.put("usefulnesses",list);
-        result.putBoolean("div", purpose.divideBySize);
-        result.putDouble("trash",purpose.disposeThreshold);
-        result.putString("name",purpose.name);
-        return result;
-
+    fun isBad(jewel: ItemStack): Boolean {
+        return getJewelUsefulness(jewel) < disposeThreshold
     }
 
-    public boolean isBad(ItemStack jewel) {
-        return getJewelUsefulness(jewel) < disposeThreshold();
+    companion object {
+        private val jewelAttributes: List<JewelAttribute> = Arrays.asList(*JewelAttribute.values())
+
+        fun readNBT(nbt: CompoundTag): JewelPurpose {
+
+            val values = ArrayList<AttributeUsefulness>()
+            for (tag in (nbt["usefulnesses"] as? ListTag)?: emptyList<Tag>()) {
+                if (tag is CompoundTag) values.add(
+                    AttributeUsefulness(
+                        jewelAttributes[tag.getInt("attr")],
+                        tag.getDouble("mul")
+                    )
+                )
+            }
+            return JewelPurpose(values, nbt.getDouble("trash"), nbt.getBoolean("div"), nbt.getString("name"))
+        }
+
+        fun writeNBT(purpose: JewelPurpose): CompoundTag {
+            return CompoundTag().apply {
+                val list = ListTag()
+
+                for ((attribute1, multiplier) in purpose.values) {
+                    list.add(CompoundTag().apply {
+
+                        val attribute = jewelAttributes.indexOf(attribute1)
+
+                        putInt("attr", attribute)
+                        putDouble("mul", multiplier)
+                    })
+                }
+                put("usefulnesses", list)
+                putBoolean("div", purpose.divideBySize)
+                putDouble("trash", purpose.disposeThreshold)
+                putString("name", purpose.name)
+            }
+        }
     }
 }

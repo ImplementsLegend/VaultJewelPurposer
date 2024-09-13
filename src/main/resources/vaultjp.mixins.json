@@ -7,7 +7,8 @@
     "mixins": [
         "AccessorAbstractContainerMenu",
         "AccessorOverSizedInventory",
-        "InventoryPerformanceFix"
+        "InventoryPerformanceFix",
+        "AccessorDataStorage"
     ],
     "client": [
     ],

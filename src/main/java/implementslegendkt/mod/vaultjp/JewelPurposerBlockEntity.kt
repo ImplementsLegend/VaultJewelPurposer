@@ -1,231 +1,242 @@
-package implementslegendkt.mod.vaultjp;
+package implementslegendkt.mod.vaultjp
 
-import implementslegendkt.mod.vaultjp.network.Channel;
-import implementslegendkt.mod.vaultjp.network.UpdatePurposesPacket;
-import iskallia.vault.block.entity.VaultJewelApplicationStationTileEntity;
-import iskallia.vault.block.entity.VaultJewelCuttingStationTileEntity;
-import iskallia.vault.config.VaultJewelCuttingConfig;
-import iskallia.vault.container.VaultJewelApplicationStationContainer;
-import iskallia.vault.container.oversized.OverSizedInventory;
-import iskallia.vault.gear.attribute.VaultGearAttributeInstance;
-import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger;
-import iskallia.vault.gear.data.ToolGearData;
-import iskallia.vault.gear.data.VaultGearData;
-import iskallia.vault.gear.item.VaultGearItem;
-import iskallia.vault.init.ModAttributes;
-import iskallia.vault.init.ModConfigs;
-import iskallia.vault.init.ModGearAttributes;
-import iskallia.vault.item.tool.JewelItem;
-import iskallia.vault.item.tool.ToolItem;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.Container;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.WorldlyContainer;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.entity.TickingBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
-import net.minecraftforge.items.wrapper.SidedInvWrapper;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import implementslegendkt.mod.vaultjp.PurposerExternalStorages.getOrCreateExternalStorage
+import implementslegendkt.mod.vaultjp.PurposerExternalStorages.saveExternalStorage
+import implementslegendkt.mod.vaultjp.mixin.AccessorDataStorage
+import implementslegendkt.mod.vaultjp.network.Channel
+import implementslegendkt.mod.vaultjp.network.UpdatePurposesPacket
+import iskallia.vault.block.entity.VaultJewelApplicationStationTileEntity
+import iskallia.vault.container.oversized.OverSizedInventory
+import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger
+import iskallia.vault.gear.data.ToolGearData
+import iskallia.vault.init.ModGearAttributes
+import iskallia.vault.item.tool.JewelItem
+import iskallia.vault.item.tool.ToolItem
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TextComponent
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.MenuProvider
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraftforge.common.capabilities.Capability
+import net.minecraftforge.common.util.LazyOptional
+import net.minecraftforge.items.CapabilityItemHandler
+import net.minecraftforge.items.IItemHandler
+import net.minecraftforge.items.wrapper.InvWrapper
+import java.util.*
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
+class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : BlockEntity(TYPE, p_155229_, p_155230_),
+    MenuProvider {
 
-public class JewelPurposerBlockEntity extends BlockEntity implements MenuProvider {
 
-    public static final BlockEntityType<JewelPurposerBlockEntity> TYPE = BlockEntityType.Builder.of(JewelPurposerBlockEntity::new, JewelPurposerBlock.INSTANCE).build(null);
-    private final JewelPurposerInventory inventory = new JewelPurposerInventory();
+    private var data: PurposerExternalStorage? = null
 
-    public ArrayList<JewelPurpose> purposes = new ArrayList<>();
+    private var handler: LazyOptional<out IItemHandler> = LazyOptional.of { InvWrapper(getOrCreateData().inventory) }
 
-    private LazyOptional<? extends IItemHandler> handler = LazyOptional.of(()->new InvWrapper(inventory));
-    public JewelPurposerBlockEntity(BlockPos p_155229_, BlockState p_155230_) {
+    val inventory get() = getOrCreateData().inventory
+    val purposes get() = getOrCreateData().purposes
 
-        super(TYPE, p_155229_, p_155230_);
+    var externalUUID= UUID.randomUUID()
+
+    private fun getOrCreateData(): PurposerExternalStorage{
+      return data?:((level as?ServerLevel)?.let { getOrCreateExternalStorage(
+          it.getDataStorage(),
+          externalUUID,
+          this
+      ) }?: PurposerExternalStorage(externalUUID,this)).also { data=it }
     }
 
-    @Override
-    public Component getDisplayName() {
-        return new TextComponent("Jewel Purposer");
-    }
-
-    @Nullable
-    @Override
-    public AbstractContainerMenu createMenu(int p_39954_, Inventory p_39955_, Player p_39956_) {
-        return this.getLevel() == null ? null : new JewelPurposerContainer(p_39954_, this.getLevel(), this.getBlockPos(), p_39956_.getInventory());
+    override fun getDisplayName(): Component {
+        return TextComponent("Jewel Purposer")
     }
 
 
-    @NotNull
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (!this.remove && cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return this.handler.cast();
-        return super.getCapability(cap,side);
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        handler.invalidate();
-    }
-
-    @Override
-    public void reviveCaps() {
-        super.reviveCaps();
-        this.handler = LazyOptional.of(()->new InvWrapper(inventory));
-    }
-
-
-    @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        for (var purposeTag:tag.getList("purposes",CompoundTag.TAG_COMPOUND)) {
-            purposes.add(JewelPurpose.readNBT((CompoundTag) purposeTag));
+    override fun createMenu(p_39954_: Int, p_39955_: Inventory, p_39956_: Player): AbstractContainerMenu? {
+        return this.getLevel()?.let {
+            JewelPurposerContainer(
+                p_39954_,
+                it,
+                this.blockPos,
+                p_39956_.inventory
+            )
         }
-        this.inventory.load(tag);
     }
 
-    @Override
-    public void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        var purposesTag = new ListTag();
-        for (var purpose :purposes) {
-            purposesTag.add(JewelPurpose.writeNBT(purpose));
+
+    override fun <T> getCapability(cap: Capability<T>, side: Direction?): LazyOptional<T> {
+        if (!this.remove && cap === CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) return handler.cast()
+        return super.getCapability(cap, side)
+    }
+
+    override fun invalidateCaps() {
+        super.invalidateCaps()
+        handler.invalidate()
+    }
+
+    override fun reviveCaps() {
+        super.reviveCaps()
+        this.handler = LazyOptional.of { InvWrapper(inventory) }
+    }
+
+
+    override fun load(tag: CompoundTag) {
+        super.load(tag)
+        if (tag.hasUUID("externalUUID")) externalUUID = tag.getUUID("externalUUID")
+        //inventory.load(tag)
+    }
+
+    public override fun saveAdditional(tag: CompoundTag) {
+        super.saveAdditional(tag)
+        val _data = data
+        tag.putUUID("externalUUID", externalUUID)
+        if (_data != null) (level as? ServerLevel)?.let {
+            saveExternalStorage(it.dataStorage,_data)
         }
-        tag.put("purposes",purposesTag);
-        this.inventory.save(tag);
+        //inventory.save(tag)
     }
 
 
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
+    override fun getUpdateTag(): CompoundTag {
+        return this.saveWithoutMetadata()
     }
 
-    @javax.annotation.Nullable
-    public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    public JewelPurposerInventory getInventory() {
-        return this.inventory;
+    override fun getUpdatePacket(): ClientboundBlockEntityDataPacket? {
+        return ClientboundBlockEntityDataPacket.create(this)
     }
 
 
-    public boolean stillValid(Player player) {
-        return this.level != null && this.level.getBlockEntity(this.worldPosition) == this && this.inventory.stillValid(player);
+    fun stillValid(player: Player?): Boolean {
+        return this.level != null && (level!!.getBlockEntity(this.worldPosition) === this) && inventory.stillValid(
+            player
+        )
     }
 
 
-    public ItemStack applyJewelsMock(ItemStack tool, int[] jewels) {
-        for (var jew : jewels) {
-            if(jew<0 || jew>JewelPurposerContainer.JEWEL_COUNT_MAX)break;
-            VaultJewelApplicationStationTileEntity.applyJewel(tool,inventory.getItem(jew));
+    fun applyJewelsMock(tool: ItemStack, jewels: IntArray): ItemStack {
+        for (jew in jewels) {
+            if (jew < 0 || jew > JewelPurposerContainer.JEWEL_COUNT_MAX) break
+            VaultJewelApplicationStationTileEntity.applyJewel(tool, inventory.getItem(jew))
         }
-        return tool;
+        return tool
     }
-    public void applyJewels(int[] jewels) {
-        var toolIndex = inventory.getContainerSize()-1;
-        var toolOld = inventory.removeItemNoUpdate(toolIndex);
-        ItemStack tool;
-        if(!(toolOld.getItem() instanceof ToolItem)){
-            inventory.setItem(toolIndex,toolOld);
-            return;
+
+    fun applyJewels(jewels: IntArray) {
+        val toolIndex = inventory.containerSize - 1
+        var toolOld = inventory.removeItemNoUpdate(toolIndex)
+        var tool: ItemStack
+        if (toolOld.item !is ToolItem) {
+            inventory.setItem(toolIndex, toolOld)
+            return
         }
 
-        for (var jew : jewels) {
-            if(jew>=0 && jew<JewelPurposerContainer.JEWEL_COUNT_MAX) {
-                if (ToolGearData.read(toolOld).get(ModGearAttributes.TOOL_CAPACITY, VaultGearAttributeTypeMerger.intSum()) <10)break;
-                tool=toolOld.copy();
-                var jewel = inventory.removeItemNoUpdate(jew);
-                VaultJewelApplicationStationTileEntity.applyJewel(tool,jewel);
-                if(ToolGearData.read(tool).get(ModGearAttributes.TOOL_CAPACITY, VaultGearAttributeTypeMerger.intSum()) <0){
-                    inventory.setItem(jew,jewel);
-                }else {
-                    toolOld=tool;
+        for (jew in jewels) {
+            if (jew >= 0 && jew < JewelPurposerContainer.JEWEL_COUNT_MAX) {
+                if (ToolGearData.read(toolOld)
+                        .get(ModGearAttributes.TOOL_CAPACITY, VaultGearAttributeTypeMerger.intSum()) < 10
+                ) break
+                tool = toolOld.copy()
+                val jewel = inventory.removeItemNoUpdate(jew)
+                VaultJewelApplicationStationTileEntity.applyJewel(tool, jewel)
+                if (ToolGearData.read(tool)
+                        .get<Int, Int>(ModGearAttributes.TOOL_CAPACITY, VaultGearAttributeTypeMerger.intSum()) < 0
+                ) {
+                    inventory.setItem(jew, jewel)
+                } else {
+                    toolOld = tool
                 }
             }
         }
 
-        inventory.setItem(toolIndex,toolOld);
-
+        inventory.setItem(toolIndex, toolOld)
     }
 
-    public void tick() {
-        if(level.isClientSide())return;
-        disposeBad();
+    fun tick() {
+        if (level!!.isClientSide()) return
+        disposeBad()
     }
 
-    @SuppressWarnings("ConstantValue")
-    private boolean tryRecycleJewel(int slot, IItemHandler cap){
-        if(purposes.isEmpty() ||
-                slot<0 ||
-                slot>= JewelPurposerContainer.JEWEL_COUNT_MAX
-        ) return false;
-        var jewel = inventory.getItem(slot);
-        if(purposes.stream().anyMatch((purpose)->!purpose.isBad(jewel)) || !(jewel.getItem() instanceof JewelItem))return true;
+    private fun tryRecycleJewel(slot: Int, cap: IItemHandler): Boolean {
+        if (purposes.isEmpty() || slot < 0 || slot >= JewelPurposerContainer.JEWEL_COUNT_MAX
+        ) return false
+        val jewel = inventory.getItem(slot)
+        if (purposes.stream()
+                .anyMatch { purpose: JewelPurpose -> !purpose.isBad(jewel) } || jewel.item !is JewelItem
+        ) return true
 
-        var targetSlots = cap.getSlots();
-        var stack = inventory.getItem(slot);
-        for (var targetSlot = 0;targetSlot<targetSlots && !stack.isEmpty();targetSlot++) {
-            stack=cap.insertItem(targetSlot,stack,false);
+        val targetSlots = cap.slots
+        var stack = inventory.getItem(slot)
+        var targetSlot = 0
+        while (targetSlot < targetSlots && !stack.isEmpty) {
+            stack = cap.insertItem(targetSlot, stack, false)
+            targetSlot++
         }
-        if (stack.isEmpty()) {//assuming 1 item per slot
-            inventory.removeItemNoUpdate(slot);
-            inventory.setChanged();
-        } else return false;
-        return true;
+        if (stack.isEmpty) { //assuming 1 item per slot
+            inventory.removeItemNoUpdate(slot)
+            inventory.setChanged()
+        } else return false
+        return true
     }
 
-    public void disposeBad() {
-        if(purposes.isEmpty()){
-            return;
+    fun disposeBad() {
+        if (purposes.isEmpty()) {
+            return
         }
 
 
-        var next = level.getBlockEntity(worldPosition.below());
-        if(next==null) return;
-        var cap = next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,Direction.UP).orElse(next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null));
-        if(cap ==null) return;
+        val next = level!!.getBlockEntity(worldPosition.below()) ?: return
+        val cap = next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, Direction.UP)
+            .orElse(next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null))
+            ?: return
 
-        for (int i = 0; i <JewelPurposerContainer.JEWEL_COUNT_MAX; i++) {
-            if (!tryRecycleJewel(i,cap)) break;
+        for (i in 0 until JewelPurposerContainer.JEWEL_COUNT_MAX) {
+            if (!tryRecycleJewel(i, cap)) break
         }
     }
 
-    public void syncToServer() {
-        Channel.CHANNEL.sendToServer(new UpdatePurposesPacket(getBlockPos(),purposes));
+    fun syncToServer() {
+        Channel.CHANNEL.sendToServer(
+            UpdatePurposesPacket(
+                blockPos, purposes
+            )
+        )
+    }
+
+    fun deleteExternalData() {
+        data?.deleted=true
+        ((level as? ServerLevel)?.dataStorage as? AccessorDataStorage)?.callGetDataFile(PurposerExternalStorages.nameFor(externalUUID))?.delete()
     }
 
 
-    public class JewelPurposerInventory extends OverSizedInventory implements DefaultWorldlyContainer {
-        public JewelPurposerInventory() {super(JewelPurposerContainer.JEWEL_COUNT_MAX + 16+1, JewelPurposerBlockEntity.this);}
+    companion object {
+        @JvmField
+        val TYPE: BlockEntityType<JewelPurposerBlockEntity> = BlockEntityType.Builder.of(
+            { p_155229_: BlockPos?, p_155230_: BlockState? -> JewelPurposerBlockEntity(p_155229_, p_155230_) },
+            JewelPurposerBlock
+        ).build(null)
+    }
+}
 
-        @Override
-        public boolean canTakeItemThroughFace(int p_19235_, ItemStack p_19236_, @Nullable Direction p_19237_) {
-            if(p_19236_.getItem() instanceof JewelItem) {
-                if (!JewelPurposerBlockEntity.this.purposes.stream().allMatch((purpose) -> purpose.getJewelUsefulness(p_19236_)<purpose.disposeThreshold())){
-                    return false;
-                }
+
+class JewelPurposerInventory(val purposer:JewelPurposerBlockEntity) :
+    OverSizedInventory(JewelPurposerContainer.JEWEL_COUNT_MAX + 16 + 1, purposer),
+    DefaultWorldlyContainer {
+    override fun canTakeItemThroughFace(p_19235_: Int, p_19236_: ItemStack, p_19237_: Direction): Boolean {
+        if (p_19236_.item is JewelItem) {
+            if (!purposer.purposes.stream()
+                    .allMatch { purpose: JewelPurpose -> purpose.getJewelUsefulness(p_19236_) < purpose.disposeThreshold }
+            ) {
+                return false
             }
-            return DefaultWorldlyContainer.super.canPlaceItemThroughFace(p_19235_, p_19236_, p_19237_);
         }
+        return super.canPlaceItemThroughFace(p_19235_, p_19236_, p_19237_)
     }
-
 }

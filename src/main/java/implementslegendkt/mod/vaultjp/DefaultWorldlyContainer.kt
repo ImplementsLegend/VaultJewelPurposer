@@ -1,26 +1,13 @@
-package implementslegendkt.mod.vaultjp;
+package implementslegendkt.mod.vaultjp
 
-import net.minecraft.core.Direction;
-import net.minecraft.world.WorldlyContainer;
-import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.core.Direction
+import net.minecraft.world.WorldlyContainer
+import net.minecraft.world.item.ItemStack
 
-public interface DefaultWorldlyContainer extends WorldlyContainer {
+interface DefaultWorldlyContainer : WorldlyContainer {
+    override fun getSlotsForFace(p_19238_: Direction): IntArray = IntArray(containerSize) { it }
 
-    @Override
-    default int[] getSlotsForFace(Direction p_19238_) {
-        var indices = new int[getContainerSize()];
-        for(var i = 0;i<indices.length;i++)indices[i]=i;
-        return indices;
-    }
+    override fun canPlaceItemThroughFace(p_19235_: Int, p_19236_: ItemStack, p_19237_: Direction?): Boolean = true
 
-    @Override
-    default boolean canPlaceItemThroughFace(int p_19235_, ItemStack p_19236_, @Nullable Direction p_19237_) {
-        return true;
-    }
-
-    @Override
-    default boolean canTakeItemThroughFace(int p_19239_, ItemStack p_19240_, Direction p_19241_) {
-        return true;
-    }
+    override fun canTakeItemThroughFace(p_19239_: Int, p_19240_: ItemStack, p_19241_: Direction): Boolean = true
 }

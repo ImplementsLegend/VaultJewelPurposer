@@ -1,174 +1,167 @@
-package implementslegendkt.mod.vaultjp;
+package implementslegendkt.mod.vaultjp
 
-import com.google.common.base.Suppliers;
-import implementslegendkt.mod.vaultjp.mixin.AccessorAbstractContainerMenu;
-import implementslegendkt.mod.vaultjp.mixin.AccessorOverSizedInventory;
-import iskallia.vault.container.oversized.OverSizedSlotContainer;
-import iskallia.vault.container.slot.TabSlot;
-import iskallia.vault.init.ModSlotIcons;
-import iskallia.vault.item.tool.JewelItem;
-import iskallia.vault.item.tool.ToolItem;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Container;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.common.extensions.IForgeMenuType;
+import com.google.common.base.Suppliers
+import implementslegendkt.mod.vaultjp.mixin.AccessorAbstractContainerMenu
+import implementslegendkt.mod.vaultjp.mixin.AccessorOverSizedInventory
+import iskallia.vault.container.oversized.OverSizedSlotContainer
+import iskallia.vault.container.slot.TabSlot
+import iskallia.vault.init.ModSlotIcons
+import iskallia.vault.item.tool.JewelItem
+import iskallia.vault.item.tool.ToolItem
+import net.minecraft.core.BlockPos
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.Container
+import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.inventory.InventoryMenu
+import net.minecraft.world.inventory.MenuType
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.Level
+import net.minecraftforge.common.extensions.IForgeMenuType
+import java.util.function.Supplier
 
-import java.sql.DriverManager;
-import java.util.function.Supplier;
+class JewelPurposerContainer(windowId: Int, world: Level, private val tilePos: BlockPos, playerInventory: Inventory) :
+    OverSizedSlotContainer(
+        MENU_TYPE, windowId, playerInventory.player
+    ) {
+    val tileEntity: JewelPurposerBlockEntity
 
-public class JewelPurposerContainer extends OverSizedSlotContainer {
-    public static final MenuType<JewelPurposerContainer> MENU_TYPE = IForgeMenuType.create((int windowId, Inventory inv, FriendlyByteBuf data)-> {
-        Level world = inv.player.level;
-        BlockPos pos = data.readBlockPos();
-        return new JewelPurposerContainer(windowId, world, pos, inv);
-    });
-    public static final int JEWEL_COUNT_MAX = 256*96;
-
-    JewelPurposerBlockEntity tileEntity;
-    private final BlockPos tilePos;
-
-    public JewelPurposerContainer(int windowId, Level world, BlockPos pos, Inventory playerInventory) {
-        super(MENU_TYPE, windowId, playerInventory.player);
-        this.tilePos = pos;
-        var tile = world.getBlockEntity(this.tilePos);
-        if (tile instanceof JewelPurposerBlockEntity craftingStationTileEntity) {
-            this.tileEntity = craftingStationTileEntity;
-            this.initSlots(playerInventory);
-        } else {
-            this.tileEntity = null;
-        }
-
+    init {
+        val tile = world.getBlockEntity(this.tilePos)
+        this.tileEntity = (tile as? JewelPurposerBlockEntity)!!
+        initSlots(playerInventory)
     }
 
-    private void initSlots(Inventory playerInventory) {
-        for(var row = 0; row < 3; ++row) {
-            for(var column = 0; column < 9; ++column) {
-                this.addSlot(new TabSlot(playerInventory, column + row * 9 + 9, 58 + column * 18, 108 + row * 18));
+    private fun initSlots(playerInventory: Inventory) {
+        repeat (3) { row->
+            repeat(9) { column->
+                this.addSlot(TabSlot(playerInventory, column + row * 9 + 9, 58 + column * 18, 108 + row * 18))
             }
         }
 
-        for(var hotbarSlot = 0; hotbarSlot < 9; ++hotbarSlot) {
-            this.addSlot(new TabSlot(playerInventory, hotbarSlot, 58 + hotbarSlot * 18, 166));
+        repeat(9) {hotbarSlot->
+            this.addSlot(TabSlot(playerInventory, hotbarSlot, 58 + hotbarSlot * 18, 166))
         }
 
-        Container invContainer = this.tileEntity.getInventory();
+        val invContainer: Container = tileEntity!!.inventory
 
-        for(var row = 0; row < 256; ++row) {
-            for(int column = 0; column < 96; ++column) {
-                final var overrideIndex = row * 96 + column;
-                this.addSlot(new TabSlot(invContainer, overrideIndex , -999 + column * 18, 50 + row * 18) {
-                    public boolean mayPlace(ItemStack stack) {
-                        return stack.getItem() instanceof JewelItem;
+        repeat (256) {row->
+            repeat(96) {column->
+                val overrideIndex = row * 96 + column
+                this.addSlot(object : TabSlot(invContainer, overrideIndex, -999 + column * 18, 50 + row * 18) {
+                    override fun mayPlace(stack: ItemStack): Boolean {
+                        return stack.item is JewelItem
                     }
 
-                    @Override
-                    public ItemStack getItem() {
-                        var itemstack0 = ((AccessorOverSizedInventory)invContainer).getContentsOverSized().get(overrideIndex);
-                        var itemstack = new ItemStack(itemstack0.stack().getItem(),itemstack0.amount());
-                        itemstack.setTag(itemstack0.stack().getTag());
-                        return itemstack;
+                    override fun getItem(): ItemStack {
+                        val itemstack0 =
+                            (invContainer as AccessorOverSizedInventory).contentsOverSized!![overrideIndex]
+                        val itemstack = ItemStack(itemstack0.stack().item, itemstack0.amount())
+                        itemstack.tag = itemstack0.stack().tag
+                        return itemstack
                     }
-                });
+                })
             }
         }
 
-        for(var row = 0; row < 4; ++row) {
-            for(int column = 0; column < 4; ++column) {
+        repeat (4) {row->
+            repeat(4) {column->
                 /*
                 * Extra slots intended for other purposes; currently unused
                 * */
-                this.addSlot(new TabSlot(invContainer, row * 4 + column + JewelPurposerContainer.JEWEL_COUNT_MAX, -999 + column * 18, 50 + row * 18) {
-                    public boolean mayPlace(ItemStack stack) {
-                        return false;//!(stack.getItem() instanceof JewelItem) && !(stack.getItem() instanceof ToolItem);
+                this.addSlot(object :
+                    TabSlot(invContainer, row * 4 + column + JEWEL_COUNT_MAX, -999 + column * 18, 50 + row * 18) {
+                    override fun mayPlace(stack: ItemStack): Boolean {
+                        return false //!(stack.getItem() instanceof JewelItem) && !(stack.getItem() instanceof ToolItem);
                     }
-                });
+                })
             }
         }
-        this.addSlot((new TabSlot(invContainer, JewelPurposerContainer.JEWEL_COUNT_MAX+16, 120, 73) {
-            public boolean mayPlace(ItemStack stack) {
-                return stack.getItem() instanceof ToolItem;
+        this.addSlot(object : TabSlot(invContainer, JEWEL_COUNT_MAX + 16, 120, 73) {
+            override fun mayPlace(stack: ItemStack): Boolean {
+                return stack.item is ToolItem
             }
-        }).setBackground(InventoryMenu.BLOCK_ATLAS, ModSlotIcons.TOOL_NO_ITEM));
-
+        }.setBackground(InventoryMenu.BLOCK_ATLAS, ModSlotIcons.TOOL_NO_ITEM))
     }
 
-    @Override
-    public ItemStack quickMoveStack(Player player, int index) {
-        ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = (Slot)this.slots.get(index);
+    override fun quickMoveStack(player: Player, index: Int): ItemStack {
+        var itemstack = ItemStack.EMPTY
+        val slot = slots[index]
         if (slot.hasItem()) {
-            ItemStack slotStack = slot.getItem();
-            itemstack = slotStack.copy();
-            if (index >= 0 && index < 36 && this.moveOverSizedItemStackTo(slotStack, slot, 36, this.slots.size(), false)) {
-                return itemstack;
+            val slotStack = slot.item
+            itemstack = slotStack.copy()
+            if (index in 0..35 && this.moveOverSizedItemStackTo(
+                    slotStack, slot, 36,
+                    slots.size, false
+                )
+            ) {
+                return itemstack
             }
 
-            if (index >= 0 && index < 27) {
+            if (index in 0..26) {
                 if (!this.moveOverSizedItemStackTo(slotStack, slot, 27, 36, false)) {
-                    return ItemStack.EMPTY;
+                    return ItemStack.EMPTY
                 }
-            } else if (index >= 27 && index < 36) {
+            } else if (index in 27..35) {
                 if (!this.moveOverSizedItemStackTo(slotStack, slot, 0, 27, false)) {
-                    return ItemStack.EMPTY;
+                    return ItemStack.EMPTY
                 }
             } else if (!this.moveOverSizedItemStackTo(slotStack, slot, 0, 36, false)) {
-                return ItemStack.EMPTY;
+                return ItemStack.EMPTY
             }
 
-            if (slotStack.getCount() == 0) {
-                slot.set(ItemStack.EMPTY);
+            if (slotStack.count == 0) {
+                slot.set(ItemStack.EMPTY)
             } else {
-                slot.setChanged();
+                slot.setChanged()
             }
 
-            if (slotStack.getCount() == itemstack.getCount()) {
-                return ItemStack.EMPTY;
+            if (slotStack.count == itemstack.count) {
+                return ItemStack.EMPTY
             }
 
-            slot.onTake(player, slotStack);
+            slot.onTake(player, slotStack)
         }
 
-        return itemstack;
+        return itemstack
     }
 
-    public JewelPurposerBlockEntity getTileEntity() {
-        return this.tileEntity;
-    }
-
-    public boolean stillValid(Player player) {
-        return this.tileEntity != null && this.tileEntity.stillValid(this.player);
+    override fun stillValid(player: Player): Boolean {
+        return this.tileEntity != null && tileEntity!!.stillValid(this.player)
     }
 
 
     //speed up!
-    @Override
-    public void broadcastChanges() {
-        for(int i = 0; i < this.slots.size(); ++i) {
-            var itemstack = this.slots.get(i).getItem();
-            Supplier<ItemStack> supplier = Suppliers.memoize(()->itemstack);
-            ((AccessorAbstractContainerMenu)this).callTriggerSlotListeners(i, itemstack, supplier);
-            ((AccessorAbstractContainerMenu)this).callSynchronizeSlotToRemote(i, itemstack, supplier);
+    override fun broadcastChanges() {
+        for (i in slots.indices) {
+            val itemstack = slots[i].item
+            val supplier: Supplier<ItemStack?> = Suppliers.memoize { itemstack }
+            (this as AccessorAbstractContainerMenu).callTriggerSlotListeners(i, itemstack, supplier)
+            (this as AccessorAbstractContainerMenu).callSynchronizeSlotToRemote(i, itemstack, supplier)
         }
-        ((AccessorAbstractContainerMenu)this).callSynchronizeCarriedToRemote();
+        (this as AccessorAbstractContainerMenu).callSynchronizeCarriedToRemote()
 
-        for(int j = 0; j < ((AccessorAbstractContainerMenu)this).getDataSlots().size(); ++j) {
-            DataSlot dataslot = ((AccessorAbstractContainerMenu)this).getDataSlots().get(j);
-            int k = dataslot.get();
+        for (j in (this as AccessorAbstractContainerMenu).dataSlots!!.indices) {
+            val dataslot =
+                (this as AccessorAbstractContainerMenu).dataSlots!![j]!!
+            val k = dataslot.get()
             if (dataslot.checkAndClearUpdateFlag()) {
-                ((AccessorAbstractContainerMenu)this).callUpdateDataSlotListeners(j, k);
+                (this as AccessorAbstractContainerMenu).callUpdateDataSlotListeners(j, k)
             }
 
-            ((AccessorAbstractContainerMenu)this).callSynchronizeDataSlotToRemote(j, k);
+            (this as AccessorAbstractContainerMenu).callSynchronizeDataSlotToRemote(j, k)
         }
-
     }
 
 
+    companion object {
+        @JvmField
+        val MENU_TYPE: MenuType<JewelPurposerContainer> =
+            IForgeMenuType.create { windowId: Int, inv: Inventory, data: FriendlyByteBuf ->
+                val world = inv.player.level
+                val pos = data.readBlockPos()
+                JewelPurposerContainer(windowId, world, pos, inv)
+            }
+        const val JEWEL_COUNT_MAX: Int = 256 * 96
+    }
 }

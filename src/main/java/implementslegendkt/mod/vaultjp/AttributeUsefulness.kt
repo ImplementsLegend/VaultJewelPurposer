@@ -1,12 +1,11 @@
-package implementslegendkt.mod.vaultjp;
+package implementslegendkt.mod.vaultjp
 
-import iskallia.vault.gear.attribute.VaultGearAttribute;
-import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger;
-import iskallia.vault.gear.data.VaultGearData;
+import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger
+import iskallia.vault.gear.data.VaultGearData
 
-public record AttributeUsefulness(JewelAttribute attribute, double multiplier) {
-    double getValue(VaultGearData item){
-        return item.get(attribute.attribute, VaultGearAttributeTypeMerger.of(()->0.0,(a,b)->a+b.doubleValue()*multiplier));
-
+@JvmRecord
+data class AttributeUsefulness( val attribute: JewelAttribute,  val multiplier: Double) {
+    fun getValue(item: VaultGearData): Double {
+        return item.allAttributes.toList().filter { it.attribute==attribute.attribute }.sumOf { (it.value as Number).toDouble()*multiplier }
     }
 }

@@ -1,45 +1,47 @@
-package implementslegendkt.mod.vaultjp.screen;
+package implementslegendkt.mod.vaultjp.screen
 
-import implementslegendkt.mod.screenlegends.Composition;
-import implementslegendkt.mod.screenlegends.DecentScreen;
-import implementslegendkt.mod.vaultjp.JewelPurpose;
-import implementslegendkt.mod.vaultjp.JewelPurposerContainer;
-import implementslegendkt.mod.vaultjp.screen.composition.*;
-import net.minecraft.network.chat.Component;
+import implementslegendkt.mod.screenlegends.Composition
+import implementslegendkt.mod.screenlegends.DecentScreen
+import implementslegendkt.mod.vaultjp.JewelPurpose
+import implementslegendkt.mod.vaultjp.JewelPurposerBlockEntity
+import implementslegendkt.mod.vaultjp.JewelPurposerContainer
+import implementslegendkt.mod.vaultjp.screen.composition.*
+import net.minecraft.network.chat.Component
+import net.minecraft.world.item.ItemStack
+import java.util.*
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+class JewelPurposerScreen(menu: JewelPurposerContainer, p_96550_: Component?) :
+    DecentScreen<JewelPurposerScreen, JewelPurposerContainer>(menu, p_96550_) {
+    private val jewelStorage: JewelStorageComposition
+    private val purposeConfigurator: PurposeConfiguratorComposition
+    private val tool: ToolComposition
 
-public class JewelPurposerScreen extends DecentScreen<JewelPurposerScreen,JewelPurposerContainer> {
-    private final JewelStorageComposition jewelStorage;
-    private final PurposeConfiguratorComposition purposeConfigurator;
-    private final ToolComposition tool;
+    init {
+        val tile = menu.tileEntity
+        val thiz = this
 
-    public JewelPurposerScreen(JewelPurposerContainer menu, Component p_96550_) {
-        super(menu, p_96550_);
-        var tile = menu.getTileEntity();
-        var thiz = this;
-
-        if(tile.purposes.isEmpty()){
-
-            tile.purposes.add(new JewelPurpose(new ArrayList<>(),-1.0,true,""+0));
-            tile.syncToServer();
+        if (tile.purposes.isEmpty()) {
+            tile.purposes.add(JewelPurpose(ArrayList(), -1.0, true, "" + 0))
+            tile.syncToServer()
         }
 
-        purposeConfigurator = new PurposeConfiguratorComposition(()->thiz.jewelStorage.markDirty());
-        jewelStorage = new JewelStorageComposition(36, (stack)->thiz.purposeConfigurator.getJewelUsefulness(stack, tile), () -> thiz.purposeConfigurator.sizeLimit, menu::getStateId);
-        jewelStorage.determineOrder(tile);
-        tool = new ToolComposition(jewelStorage::getJewels);
+        purposeConfigurator = PurposeConfiguratorComposition { thiz.jewelStorage.markDirty() }
+        jewelStorage = JewelStorageComposition(
+            36,
+            { stack: ItemStack? -> thiz.purposeConfigurator.getJewelUsefulness(stack, tile) },
+            { thiz.purposeConfigurator.sizeLimit },
+            { menu.stateId })
+        jewelStorage.determineOrder(tile)
+        tool = ToolComposition { jewelStorage.getJewels(this@ToolComposition) }
     }
-    @Override
-    protected List<Composition<JewelPurposerScreen>> createCompositions() {
-        return Arrays.asList(
-                new PlayerInventoryComposition<>(27, 0, -176 / 2, 52),
-                jewelStorage,
-                purposeConfigurator,
-                tool,
-                new GrabbedItemComposition<>()
-        );
+
+    override fun createCompositions(): List<Composition<JewelPurposerScreen>> {
+        return listOf(
+            PlayerInventoryComposition(27, 0, -176 / 2, 52),
+            jewelStorage,
+            purposeConfigurator,
+            tool,
+            GrabbedItemComposition()
+        )
     }
 }

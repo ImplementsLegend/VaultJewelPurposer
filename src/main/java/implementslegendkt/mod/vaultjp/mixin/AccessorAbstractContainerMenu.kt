@@ -1,33 +1,30 @@
-package implementslegendkt.mod.vaultjp.mixin;
+package implementslegendkt.mod.vaultjp.mixin
 
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.item.ItemStack;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
-import org.spongepowered.asm.mixin.gen.Invoker;
+import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.inventory.DataSlot
+import net.minecraft.world.item.ItemStack
+import org.spongepowered.asm.mixin.Mixin
+import org.spongepowered.asm.mixin.gen.Accessor
+import org.spongepowered.asm.mixin.gen.Invoker
+import java.util.function.Supplier
 
-import java.util.List;
-import java.util.function.Supplier;
-
-@Mixin(AbstractContainerMenu.class)
-public interface AccessorAbstractContainerMenu {
-    @Accessor("dataSlots")
-    List<DataSlot> getDataSlots();
+@Mixin(AbstractContainerMenu::class)
+interface AccessorAbstractContainerMenu {
+    @get:Accessor("dataSlots")
+    val dataSlots: List<DataSlot?>?
 
     @Invoker("synchronizeCarriedToRemote")
-    void callSynchronizeCarriedToRemote();
+    fun callSynchronizeCarriedToRemote()
 
     @Invoker("triggerSlotListeners")
-    void callTriggerSlotListeners(int i, ItemStack itemstack, Supplier<ItemStack> supplier);
+    fun callTriggerSlotListeners(i: Int, itemstack: ItemStack?, supplier: Supplier<ItemStack?>?)
 
     @Invoker("synchronizeSlotToRemote")
-    void callSynchronizeSlotToRemote(int i, ItemStack itemstack, Supplier<ItemStack> supplier);
+    fun callSynchronizeSlotToRemote(i: Int, itemstack: ItemStack?, supplier: Supplier<ItemStack?>?)
 
     @Invoker("updateDataSlotListeners")
-    void callUpdateDataSlotListeners(int j, int k);
+    fun callUpdateDataSlotListeners(j: Int, k: Int)
 
     @Invoker("synchronizeDataSlotToRemote")
-    void callSynchronizeDataSlotToRemote(int j, int k);
-
+    fun callSynchronizeDataSlotToRemote(j: Int, k: Int)
 }
