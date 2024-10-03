@@ -6,9 +6,10 @@
     "refmap": "vaultjp.refmap.json",
     "mixins": [
         "AccessorAbstractContainerMenu",
+        "AccessorDataStorage",
         "AccessorOverSizedInventory",
         "InventoryPerformanceFix",
-        "AccessorDataStorage"
+        "JewelPouchAccessor"
     ],
     "client": [
     ],

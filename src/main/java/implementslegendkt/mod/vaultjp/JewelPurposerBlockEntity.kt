@@ -10,8 +10,10 @@ import iskallia.vault.container.oversized.OverSizedInventory
 import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger
 import iskallia.vault.gear.data.ToolGearData
 import iskallia.vault.init.ModGearAttributes
+import iskallia.vault.item.JewelPouchItem
 import iskallia.vault.item.tool.JewelItem
 import iskallia.vault.item.tool.ToolItem
+import iskallia.vault.util.LootInitialization
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -19,7 +21,9 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.MenuProvider
+import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.inventory.AbstractContainerMenu
@@ -46,13 +50,30 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
     val purposes get() = getOrCreateData().purposes
 
     var externalUUID= UUID.randomUUID()
+    
+    var oldTag:CompoundTag? = null
 
     private fun getOrCreateData(): PurposerExternalStorage{
-      return data?:((level as?ServerLevel)?.let { getOrCreateExternalStorage(
-          it.getDataStorage(),
-          externalUUID,
-          this
-      ) }?: PurposerExternalStorage(externalUUID,this)).also { data=it }
+        val _oldTag = oldTag
+        oldTag=null
+        return data?:run {
+            val result = ((level as? ServerLevel)?.let {
+                getOrCreateExternalStorage(
+                    it.getDataStorage(),
+                    externalUUID,
+                    this
+                )
+            } ?: PurposerExternalStorage(externalUUID, this)).also { data = it }
+
+            if(_oldTag!==null){
+                result.inventory.load(_oldTag)
+                result.purposes.addAll(
+                    _oldTag.getList("purposes", CompoundTag.TAG_COMPOUND.toInt())
+                        .map { JewelPurpose.readNBT(it as CompoundTag) })
+
+            }
+            result
+        }
     }
 
     override fun getDisplayName(): Component = TextComponent("Jewel Purposer")
@@ -84,7 +105,9 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
 
     override fun load(tag: CompoundTag) {
         super.load(tag)
+
         if (tag.hasUUID("externalUUID")) externalUUID = tag.getUUID("externalUUID")
+        else oldTag=tag
         //inventory.load(tag)
     }
 
@@ -187,6 +210,38 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
     fun deleteExternalData() {
         data?.deleted=true
         ((level as? ServerLevel)?.dataStorage as? AccessorDataStorage)?.callGetDataFile(PurposerExternalStorages.nameFor(externalUUID))?.delete()
+    }
+
+    fun acceptBest(options: List<JewelPouchItem.RolledJewel>,level:Int,dbgPlayer:ServerPlayer?=null) {
+        (this.level as? ServerLevel)?.let {
+            world->
+            val identified = options.filter { it.identified }.map { it.stack }
+            val unidentified = options.filter { !it.identified }.map { LootInitialization.initializeVaultLoot(it.stack, level)/*todo identify*/ }.toMutableList()
+
+                    val chosen = (identified.mapNotNull {
+                    jewel->
+                val ratios = purposes.map {
+                    it.getJewelUsefulness(jewel)/it.disposeThreshold
+                }
+                val highestRatio = ratios.maxOrNull()?:run { unidentified+=jewel;return@mapNotNull null }
+                (jewel to highestRatio).takeIf { it.second>1.0 }
+            }.maxByOrNull {
+                it.second
+            }?.first?:unidentified.random()).copy()
+
+            val slot = run slot@{
+                repeat(JewelPurposerContainer.JEWEL_COUNT_MAX) {
+                    if(inventory.getItem(it).isEmpty)return@slot it
+                }
+                -1
+            }
+            if(slot!=-1){
+                inventory.setItem(slot,chosen)
+            }else{
+                world.addFreshEntity(ItemEntity(world, worldPosition.x.toDouble(),
+                    worldPosition.y.toDouble(), worldPosition.z.toDouble(),chosen))
+            }
+        }
     }
 
 

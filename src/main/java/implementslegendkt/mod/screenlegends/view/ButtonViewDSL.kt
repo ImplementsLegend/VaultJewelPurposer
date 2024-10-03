@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import implementslegendkt.mod.screenlegends.DecentScreen
 import implementslegendkt.mod.screenlegends.View
 import implementslegendkt.mod.screenlegends.ViewInteractor
+import implementslegendkt.mod.screenlegends.forEnabledViews
 import net.minecraft.client.gui.GuiComponent
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.Rect2i
@@ -21,24 +22,26 @@ class ButtonViewDSL : View {
 
     var shouldHighlight: Function<Boolean, Boolean> = Function { hovering: Boolean -> hovering }
 
+    override var enabled: () -> Boolean = {true}
+
     class ButtonInteractor : ViewInteractor<ButtonViewDSL> {
         override fun clear() {
             views.clear()
         }
 
-        private val views = ArrayList<ButtonViewDSL>()
+        override val views = ArrayList<ButtonViewDSL>()
         override fun addView(dsl: ButtonViewDSL) {
             views.add(dsl)
         }
 
         override fun <S : DecentScreen<*, *>> renderViews(screen: S, stack: PoseStack?, cursorX: Int, cursorY: Int) {
-            for (view in views) {
+            forEnabledViews{view->
                 RenderSystem.setShader { GameRenderer.getPositionTexShader() }
                 RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f)
                 view.texture()?.let { RenderSystem.setShaderTexture(0, it) }
-                val rect = view.srcRect()?:continue
+                val rect = view.srcRect()?:return@forEnabledViews
                 val position = view.pos()
-                val atlas = view.atlasSize()?:continue
+                val atlas = view.atlasSize()?:return@forEnabledViews
                 GuiComponent.blit(
                     stack,
                     position.first,
@@ -70,9 +73,9 @@ class ButtonViewDSL : View {
         }
 
         override fun <S : DecentScreen<*, *>> click(screen: S, cursorX: Int, cursorY: Int, key: Int) {
-            for (view in views) {
+            forEnabledViews{view->
                 val position = view.pos()
-                val srcrect = view.srcRect()?:continue
+                val srcrect = view.srcRect()?:return@forEnabledViews
                 if (cursorX > position.first && cursorX < position.first + srcrect.width && cursorY > position.second && cursorY < position.second + srcrect.height) {
                     //view.clicked=true;
                     view.onClick()

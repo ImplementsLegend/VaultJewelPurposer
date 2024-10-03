@@ -1,8 +1,15 @@
 package implementslegendkt.mod.vaultjp
 
+import implementslegendkt.mod.vaultjp.mixin.JewelPouchAccessor
 import implementslegendkt.mod.vaultjp.network.Channel
 import implementslegendkt.mod.vaultjp.network.UpdatePurposesPacket
+import iskallia.vault.gear.VaultGearState
 import iskallia.vault.init.ModItems
+import iskallia.vault.item.JewelPouchItem
+import iskallia.vault.skill.expertise.type.JewelExpertise
+import iskallia.vault.util.InventoryUtil.*
+import iskallia.vault.world.data.PlayerExpertisesData
+import iskallia.vault.world.data.PlayerVaultStatsData
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.*
@@ -33,9 +40,50 @@ object JewelPurposerBlock:Block(Properties.of(Material.STONE).destroyTime(6.5f))
         p_60507_: InteractionHand,
         p_60508_: BlockHitResult
     ): InteractionResult {
-        if(player is ServerPlayer) (p_60504_.getBlockEntity(p_60505_) as? JewelPurposerBlockEntity)?.let {
-            Channel.CHANNEL.sendTo(UpdatePurposesPacket(p_60505_,it.purposes),player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
-            NetworkHooks.openGui(player,it){it.writeBlockPos(p_60505_)}
+        if(player is ServerPlayer) (p_60504_.getBlockEntity(p_60505_) as? JewelPurposerBlockEntity)?.let { purposer ->
+            val handContent = findAllItemsInMainHand(player)
+            if(handContent.size>1){
+                handContent.filter {
+                    it.stack.item is JewelPouchItem
+                }.forEach {
+                    it.stack=it.stack.apply {
+                        repeat(count) { _ ->
+                            val stack = copy().also { modified -> modified.count = 1 }
+                            count--
+
+                            val vaultLevel = JewelPouchItem.getStoredLevel(stack)
+                                .orElseGet {
+                                    PlayerVaultStatsData.get(player.getLevel()).getVaultStats(player).vaultLevel
+                                }
+                            if (ModItems.JEWEL_POUCH.getState(stack) !== VaultGearState.IDENTIFIED) {
+
+                                val additionalIdentifiedJewels =
+                                    PlayerExpertisesData
+                                        .get(player.getLevel())
+                                        .getExpertises(player)
+                                        .getAll(JewelExpertise::class.java) { it.isUnlocked }
+                                        .sumOf { it.additionalIdentifiedJewels }
+
+                                (ModItems.JEWEL_POUCH as JewelPouchAccessor).callGenerateJewels(
+                                    stack,
+                                    vaultLevel,
+                                    additionalIdentifiedJewels
+                                )
+                            }
+                            val options = JewelPouchItem.getJewels(stack)
+                            purposer.acceptBest(options, vaultLevel, dbgPlayer = player)
+                        }
+                    }
+                }
+            }else {
+
+                Channel.CHANNEL.sendTo(
+                    UpdatePurposesPacket(p_60505_, purposer.purposes),
+                    player.connection.getConnection(),
+                    NetworkDirection.PLAY_TO_CLIENT
+                );
+                NetworkHooks.openGui(player, purposer) { it.writeBlockPos(p_60505_) }
+            }
         }
         return InteractionResult.SUCCESS
     }
@@ -62,6 +110,7 @@ object JewelPurposerBlock:Block(Properties.of(Material.STONE).destroyTime(6.5f))
             super.onRemove(p_60515_, p_60516_, p_60517_, p_60518_, p_60519_)
         }
     }
+
 
     override fun newBlockEntity(p_153215_: BlockPos, p_153216_: BlockState)= JewelPurposerBlockEntity.TYPE.create(p_153215_,p_153216_)
 

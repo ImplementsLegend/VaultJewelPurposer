@@ -2,9 +2,7 @@ package implementslegendkt.mod.screenlegends.view
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import implementslegendkt.mod.screenlegends.DecentScreen
-import implementslegendkt.mod.screenlegends.View
-import implementslegendkt.mod.screenlegends.ViewInteractor
+import implementslegendkt.mod.screenlegends.*
 import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.GuiComponent
 import net.minecraft.client.renderer.GameRenderer
@@ -48,6 +46,7 @@ class IntBoxViewDSL : View {
 
     var shouldHighlight: Function<Boolean, Boolean> = Function { hovering: Boolean -> hovering }
 
+    override var enabled: () -> Boolean = {true}
 
     class IntBoxInteractor : ViewInteractor<IntBoxViewDSL> {
         private var selected = 0
@@ -56,14 +55,14 @@ class IntBoxViewDSL : View {
             views.clear()
         }
 
-        private val views = ArrayList<IntBoxViewDSL>()
+        override val views = ArrayList<IntBoxViewDSL>()
         override fun addView(dsl: IntBoxViewDSL) {
             views.add(dsl)
         }
 
         override fun <S : DecentScreen<*, *>> renderViews(screen: S, stack: PoseStack?, cursorX: Int, cursorY: Int) {
-            for (i in views.indices) {
-                val view = views[i]
+            forEnabledViewsIndexed {
+                i,view ->
                 run drawImage@{
                     RenderSystem.setShader { GameRenderer.getPositionTexShader() }
                     RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f)
@@ -100,7 +99,7 @@ class IntBoxViewDSL : View {
                     }
                 }
                 run drawText@{
-                    val font = screen!!.font
+                    val font = screen.font
                     val text = view.text(view.valueGetter(), if (i == selected) cursor else -1)
                     val width = font.width(text)
                     val position = view.textPos(width)
@@ -138,11 +137,11 @@ class IntBoxViewDSL : View {
         }
 
         override fun <S : DecentScreen<*, *>> click(screen: S, cursorX: Int, cursorY: Int, key: Int) {
-            for (i in views.indices) {
-                val view = views[i]
+            forEnabledViewsIndexed {
+                i,view->
                 val position = view.pos()
                 val rect = view.srcRect()
-                val width = rect?.width?:continue
+                val width = rect?.width?:return@forEnabledViewsIndexed
                 val height = rect.height
 
                 val hoveringX = cursorX > position.first && cursorX < position.first + width
@@ -167,6 +166,7 @@ class IntBoxViewDSL : View {
                 override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int)  = view.valueSetter(value)
             }
             val range = view.valueRange()
+            //todo view.onTyped
 
             if (glfwKey == GLFW.GLFW_KEY_KP_ADD || glfwKey == GLFW.GLFW_KEY_UP) {
                 val newValue = value + cursorExponential

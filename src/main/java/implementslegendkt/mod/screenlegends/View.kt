@@ -1,3 +1,5 @@
 package implementslegendkt.mod.screenlegends
 
-interface View 
+interface View {
+    val enabled:()->Boolean
+}

@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import implementslegendkt.mod.screenlegends.DecentScreen
 import implementslegendkt.mod.screenlegends.View
 import implementslegendkt.mod.screenlegends.ViewInteractor
+import implementslegendkt.mod.screenlegends.forEnabledViews
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiComponent
 import net.minecraft.world.inventory.ClickType
@@ -22,18 +23,20 @@ class SlotViewDSL : View {
     var shouldHighlight: (Boolean) -> Boolean = { it }
     var highlightColor: (Boolean) -> Int = { -0x7f000001 }
 
+    override var enabled: () -> Boolean = {true}
+
     class SlotInteractor : ViewInteractor<SlotViewDSL> {
         override fun clear() {
             views.clear()
         }
 
-        private val views = ArrayList<SlotViewDSL>()
+        override val views = ArrayList<SlotViewDSL>()
         override fun addView(dsl: SlotViewDSL) {
             views.add(dsl)
         }
 
         override fun <S : DecentScreen<*, *>> renderViews(screen: S, stack: PoseStack?, cursorX: Int, cursorY: Int) {
-            for (view in views) {
+            forEnabledViews {view->
                 val slot = view.slot()
                 val oldItemStack =
                     if ((screen.menu!!.slots.size > slot && slot >= 0)) screen.menu!!.getSlot(slot).item else ItemStack.EMPTY
@@ -65,7 +68,7 @@ class SlotViewDSL : View {
         }
 
         override fun <S : DecentScreen<*, *>> click(screen: S, cursorX: Int, cursorY: Int, key: Int) {
-            for (view in views) {
+            forEnabledViews {view->
                 val slot = view.slot()
                 //var itemStack = view.mapItem.apply((screen.menu.slots.size() > slot && slot>0)?screen.menu.getSlot(slot).getItem():ItemStack.EMPTY);
                 val position = view.position()

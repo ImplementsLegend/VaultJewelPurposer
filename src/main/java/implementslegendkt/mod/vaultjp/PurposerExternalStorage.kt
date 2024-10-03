@@ -20,7 +20,7 @@ class PurposerExternalStorage(val uuid:UUID, purposer:JewelPurposerBlockEntity):
         inventory.save(this)
     }
 
-    override fun isDirty() = !deleted
+    override fun isDirty() = super.isDirty() && !deleted
 
 }
 object PurposerExternalStorages {
@@ -35,6 +35,7 @@ object PurposerExternalStorages {
             }
         },nameFor(uuid))?:PurposerExternalStorage(uuid,purposer)
     fun saveExternalStorage(storage:DimensionDataStorage,data:PurposerExternalStorage){
+        data.isDirty=true
         storage.set(nameFor(data.uuid),data)
     }
 

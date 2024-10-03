@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import implementslegendkt.mod.screenlegends.DecentScreen
 import implementslegendkt.mod.screenlegends.View
 import implementslegendkt.mod.screenlegends.ViewInteractor
+import implementslegendkt.mod.screenlegends.forEnabledViews
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.TextComponent
@@ -18,8 +19,10 @@ class TextViewDSL : View {
     var pos: (Int)-> Pair<Int, Int> =  { width -> 0 to 0 }
     var text: ()->Component = { TextComponent("") }
 
+    override var enabled: () -> Boolean = {true}
+
     class TextInteractor : ViewInteractor<TextViewDSL> {
-        private val views = ArrayList<TextViewDSL>()
+        override val views = ArrayList<TextViewDSL>()
 
         override fun clear() {
             views.clear()
@@ -30,7 +33,7 @@ class TextViewDSL : View {
         }
 
         override fun <S:DecentScreen<*,*>> renderViews(screen: S, stack: PoseStack?, cursorX: Int, cursorY: Int) {
-            for (view in views) {
+            forEnabledViews {view->
                 val font = screen.font
                 val text = view.text()
                 val width = font.width(text)
