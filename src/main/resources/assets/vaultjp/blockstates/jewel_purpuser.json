@@ -1,0 +1,20 @@
+{
+    "variants": {
+        "facing=north": {
+            "model":"vaultjp:block/jewel_purpose_factory",
+            "y": 180
+        },
+        "facing=south": {
+            "model":"vaultjp:block/jewel_purpose_factory",
+            "y": 0
+        },
+        "facing=east": {
+            "model":"vaultjp:block/jewel_purpose_factory",
+            "y": 270
+        },
+        "facing=west": {
+            "model":"vaultjp:block/jewel_purpose_factory",
+            "y": 90
+        }
+    }
+}

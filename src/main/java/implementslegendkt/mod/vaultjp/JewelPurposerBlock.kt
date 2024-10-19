@@ -7,23 +7,32 @@ import iskallia.vault.gear.VaultGearState
 import iskallia.vault.init.ModItems
 import iskallia.vault.item.JewelPouchItem
 import iskallia.vault.skill.expertise.type.JewelExpertise
-import iskallia.vault.util.InventoryUtil.*
+import iskallia.vault.util.InventoryUtil.findAllItemsInMainHand
 import iskallia.vault.world.data.PlayerExpertisesData
 import iskallia.vault.world.data.PlayerVaultStatsData
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.*
+import net.minecraft.world.Containers
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.WorldlyContainerHolder
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.Item
+import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.EntityBlock
+import net.minecraft.world.level.block.LadderBlock
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityTicker
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.StateDefinition
+import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.level.material.Material
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraftforge.network.NetworkDirection
@@ -31,6 +40,22 @@ import net.minecraftforge.network.NetworkHooks
 
 object JewelPurposerBlock:Block(Properties.of(Material.STONE).destroyTime(6.5f)),EntityBlock,WorldlyContainerHolder {
     val ITEM = BlockItem(this, Item.Properties().tab(ModItems.VAULT_MOD_GROUP))
+
+    init {
+
+        this.registerDefaultState(
+            stateDefinition.any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
+        )
+    }
+
+    override fun createBlockStateDefinition(p_49915_: StateDefinition.Builder<Block, BlockState>) {
+        super.createBlockStateDefinition(p_49915_)
+        p_49915_.add(BlockStateProperties.HORIZONTAL_FACING)
+    }
+
+    override fun getStateForPlacement(p_49820_: BlockPlaceContext): BlockState? {
+        return super.getStateForPlacement(p_49820_)?.setValue(BlockStateProperties.HORIZONTAL_FACING,p_49820_.horizontalDirection)
+    }
 
     override fun use(
         p_60503_: BlockState,
