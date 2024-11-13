@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(OverSizedInventory.class)
 public abstract class InventoryPerformanceFix {
-    @Shadow @Final private NonNullList<OverSizedItemStack> contents;
+    @Shadow(remap = false) @Final private NonNullList<OverSizedItemStack> contents;
 
     @Inject(method = "isEmpty",at = @At("HEAD"), cancellable = true)
     private void fixPerformance(CallbackInfoReturnable<Boolean> cir){

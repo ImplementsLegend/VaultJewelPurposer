@@ -136,7 +136,7 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
     fun applyJewelsMock(tool: ItemStack, jewels: IntArray) = jewels.fold(tool){
         toolAcc,jewelIndex->
         if(jewelIndex !in 0 until JewelPurposerContainer.JEWEL_COUNT_MAX) return@applyJewelsMock toolAcc
-        VaultJewelApplicationStationTileEntity.applyJewel(toolAcc,inventory.getItem(jewelIndex))
+        ToolItem.applyJewel(toolAcc,inventory.getItem(jewelIndex), false)
         toolAcc
     }
 
@@ -156,8 +156,8 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
                 ) break
                 tool = toolOld.copy()
                 val jewel = inventory.removeItemNoUpdate(jew)
-                VaultJewelApplicationStationTileEntity.applyJewel(tool, jewel)
-                if (ToolGearData.read(tool)
+
+                if (ToolItem.applyJewel(tool,jewel,true) && ToolGearData.read(tool)
                         .get<Int, Int>(ModGearAttributes.TOOL_CAPACITY, VaultGearAttributeTypeMerger.intSum()) < 0
                 ) {
                     inventory.setItem(jew, jewel)

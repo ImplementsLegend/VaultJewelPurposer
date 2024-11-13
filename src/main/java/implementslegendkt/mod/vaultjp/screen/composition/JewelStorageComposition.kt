@@ -24,9 +24,9 @@ import java.util.function.IntSupplier
 
 class JewelStorageComposition(
     private val firstSlot: Int,
-    private val usefulnessCalculator: Function<ItemStack, Double>,
-    private val maxSize: IntSupplier,
-    private val screenID: IntSupplier
+    private val usefulnessCalculator: (ItemStack)-> Double,
+    private val maxSize: ()->Int,
+    private val screenID: ()->Int
 ) : Composition<JewelPurposerScreen> {
     private var jewelInvScroll = 0
     private var lastSortScreenId = -2
@@ -45,6 +45,7 @@ class JewelStorageComposition(
     }
 
     private fun composeMainInv(screen: JewelPurposerScreen, midX: Int, midY: Int) {
+        val acceptedJewels = getJewels(screen.menu.tileEntity)
         screen.background {
             texture = { ResourceLocation("vaultjp:textures/gui/jewel_inv.png") }
             srcRect = { Rect2i(0, 0, 158, 158) }
@@ -58,7 +59,10 @@ class JewelStorageComposition(
             val y = slotIndex / 8
             val slotCopy = slotIndex
             screen.viewSlot {  //todo slot highlight
-                slot = { jewelOrder[slotCopy + jewelInvScroll]!!.slotPointer + firstSlot }
+                val jewelIndex = {
+                    jewelOrder[slotCopy + jewelInvScroll]!!.slotPointer
+                }
+                slot = { jewelIndex() + firstSlot }
                 position = { x * 18 + 28 + midX to y * 18 - 107 + midY }
                 mapItem = { item ->
                     if(item?.item is JewelItem )
@@ -66,6 +70,20 @@ class JewelStorageComposition(
                         item,
                         jewelOrder[slotCopy + jewelInvScroll]!!.usefulness
                     ) else item
+                }
+                val isAccepted = {
+                    val value = jewelIndex()
+                    acceptedJewels.any { it == value }
+                }
+                shouldHighlight={
+                    it || isAccepted()
+                }
+                highlightColor = {
+                    when{
+                        isAccepted() && it -> 0x7f77dd77
+                        isAccepted()-> 0x7f339933
+                        else -> -0x7f000001
+                    }
                 }
             }
         }
@@ -117,7 +135,7 @@ class JewelStorageComposition(
 
     fun determineOrder(tile: JewelPurposerBlockEntity) {
         val cont = tile.inventory.overSizedContents
-        val currentScreenID = screenID.asInt
+        val currentScreenID = screenID()
         if (cont.isEmpty() || (currentScreenID == lastSortScreenId && !dirty)) return
         lastSortScreenId = currentScreenID
 
@@ -132,14 +150,14 @@ class JewelStorageComposition(
         for (contentIndex in cont.indices) {
             if (cont[contentIndex].overSizedStack().item is JewelItem) {
                 jewelOrder[orderIndex] =
-                    OrderEntry(contentIndex, usefulnessCalculator.apply(cont[contentIndex].stack()))
+                    OrderEntry(contentIndex, usefulnessCalculator(cont[contentIndex].stack()))
                 orderIndex++
             }
         }
         var contentIndex = 0
         while (contentIndex < cont.size && orderIndex < 64 * pageCount) {
             if (cont[contentIndex].overSizedStack().item !is JewelItem) {
-                jewelOrder[orderIndex] = OrderEntry(contentIndex, usefulnessCalculator.apply(ItemStack.EMPTY))
+                jewelOrder[orderIndex] = OrderEntry(contentIndex, usefulnessCalculator(ItemStack.EMPTY))
                 orderIndex++
             }
             contentIndex++
@@ -151,7 +169,7 @@ class JewelStorageComposition(
 
     fun getJewels(tile: JewelPurposerBlockEntity): IntArray {
         var size = 0
-        val maxSize = maxSize.asInt
+        val maxSize = maxSize()
         val jewels = IntArray(maxSize / 10)
         Arrays.fill(jewels, -1)
         var jewelCount = 0

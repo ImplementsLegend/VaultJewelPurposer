@@ -55,7 +55,7 @@ class JewelPurposerContainer(windowId: Int, world: Level, private val tilePos: B
 
                     override fun getItem(): ItemStack {
                         val itemstack0 =
-                            (invContainer as AccessorOverSizedInventory).contentsOverSized!![overrideIndex]
+                            (invContainer as AccessorOverSizedInventory).contents!![overrideIndex]
                         val itemstack = ItemStack(itemstack0.stack().item, itemstack0.amount())
                         itemstack.tag = itemstack0.stack().tag
                         return itemstack
