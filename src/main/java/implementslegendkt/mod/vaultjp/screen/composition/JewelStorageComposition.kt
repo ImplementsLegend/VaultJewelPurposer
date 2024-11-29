@@ -33,7 +33,7 @@ class JewelStorageComposition(
     private var pageCount = 1
 
     @JvmRecord
-    data class OrderEntry(val slotPointer: Int, val usefulness: Double)
+    data class OrderEntry(val slotPointer: Int, val usefulness: Double,val size:Int,val isAccepted: Boolean)
 
     private lateinit var jewelOrder: Array<OrderEntry?>
     private var dirty = true
@@ -45,7 +45,6 @@ class JewelStorageComposition(
     }
 
     private fun composeMainInv(screen: JewelPurposerScreen, midX: Int, midY: Int) {
-        val acceptedJewels = getJewels(screen.menu.tileEntity)
         screen.background {
             texture = { ResourceLocation("vaultjp:textures/gui/jewel_inv.png") }
             srcRect = { Rect2i(0, 0, 158, 158) }
@@ -72,8 +71,7 @@ class JewelStorageComposition(
                     ) else item
                 }
                 val isAccepted = {
-                    val value = jewelIndex()
-                    acceptedJewels.any { it == value }
+                    jewelOrder[slotCopy + jewelInvScroll]!!.isAccepted
                 }
                 shouldHighlight={
                     it || isAccepted()
@@ -147,23 +145,31 @@ class JewelStorageComposition(
         jewelOrder = arrayOfNulls(64 * pageCount)
 
         var orderIndex = 0
-        for (contentIndex in cont.indices) {
+        repeat (cont.size) {contentIndex->
             if (cont[contentIndex].overSizedStack().item is JewelItem) {
-                jewelOrder[orderIndex] =
-                    OrderEntry(contentIndex, usefulnessCalculator(cont[contentIndex].stack()))
+                jewelOrder[orderIndex] = OrderEntry(contentIndex, usefulnessCalculator(cont[contentIndex].stack()),10,false)
                 orderIndex++
             }
         }
         var contentIndex = 0
         while (contentIndex < cont.size && orderIndex < 64 * pageCount) {
             if (cont[contentIndex].overSizedStack().item !is JewelItem) {
-                jewelOrder[orderIndex] = OrderEntry(contentIndex, usefulnessCalculator(ItemStack.EMPTY))
+                jewelOrder[orderIndex] = OrderEntry(contentIndex, usefulnessCalculator(ItemStack.EMPTY),10,false)
                 orderIndex++
             }
             contentIndex++
         }
 
         Arrays.sort(jewelOrder, Comparator.comparingDouble { it: OrderEntry? -> -it!!.usefulness })
+        val jewels = getJewels(tile).toSet()
+        jewelOrder.indices.forEach {
+            if(jewelOrder[it]!!.slotPointer in jewels)jewelOrder[it]=jewelOrder[it]!!.copy(isAccepted = true)
+        }
+        /*
+        jewels.forEach {
+            if(it>-1)
+            jewelOrder[it]=jewelOrder[it]!!.copy(isAccepted = true)
+        }*/
         dirty = false
     }
 

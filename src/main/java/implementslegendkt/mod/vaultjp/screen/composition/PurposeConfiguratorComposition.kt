@@ -117,7 +117,7 @@ class PurposeConfiguratorComposition(private val markDirty: ()->Unit) : Composit
             midY + i - 96,
             "vaultjp.config_entry.max_size",
             { sizeLimit.toDouble() },
-            { sizeLimit = it.toInt() },
+            { markDirty(); sizeLimit = it.toInt() },
             1.0
         ) //screen.getAttrUsefulness(p));
         i += 12
