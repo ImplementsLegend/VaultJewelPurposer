@@ -38,7 +38,7 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraftforge.network.NetworkDirection
 import net.minecraftforge.network.NetworkHooks
 
-object JewelPurposerBlock:Block(Properties.of(Material.STONE).destroyTime(6.5f)),EntityBlock,WorldlyContainerHolder {
+object JewelPurposerBlock:Block(Properties.of(Material.STONE).noOcclusion().destroyTime(6.5f)),EntityBlock,WorldlyContainerHolder {
     val ITEM = BlockItem(this, Item.Properties().tab(ModItems.VAULT_MOD_GROUP))
 
     init {
