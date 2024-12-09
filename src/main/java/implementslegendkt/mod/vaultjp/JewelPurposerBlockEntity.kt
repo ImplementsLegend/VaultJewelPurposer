@@ -59,7 +59,7 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
         return data?:run {
             val result = ((level as? ServerLevel)?.let {
                 getOrCreateExternalStorage(
-                    it.getDataStorage(),
+                    it.server.overworld().getDataStorage(),
                     externalUUID,
                     this
                 )
