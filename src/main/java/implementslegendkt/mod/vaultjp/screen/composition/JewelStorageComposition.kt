@@ -1,10 +1,6 @@
 package implementslegendkt.mod.vaultjp.screen.composition
 
 import implementslegendkt.mod.screenlegends.Composition
-import implementslegendkt.mod.screenlegends.view.BackgroundViewDSL
-import implementslegendkt.mod.screenlegends.view.ButtonViewDSL
-import implementslegendkt.mod.screenlegends.view.SlotViewDSL
-import implementslegendkt.mod.screenlegends.view.TextViewDSL
 import implementslegendkt.mod.vaultjp.JewelPurposerBlockEntity
 import implementslegendkt.mod.vaultjp.screen.JewelPurposerScreen
 import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger
@@ -17,10 +13,7 @@ import net.minecraft.nbt.Tag
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
-import oshi.util.tuples.Pair
 import java.util.*
-import java.util.function.Function
-import java.util.function.IntSupplier
 
 class JewelStorageComposition(
     private val firstSlot: Int,
@@ -39,13 +32,13 @@ class JewelStorageComposition(
     private var dirty = true
 
 
-    override fun compose(screen: JewelPurposerScreen, midX: Int, midY: Int) {
-        composeMainInv(screen, midX, midY)
-        composeSideDecorations(screen, midX, midY)
+    override fun JewelPurposerScreen.compose(midX: Int, midY: Int) {
+        composeMainInv( midX, midY)
+        composeSideDecorations( midX, midY)
     }
 
-    private fun composeMainInv(screen: JewelPurposerScreen, midX: Int, midY: Int) {
-        screen.background {
+    private fun JewelPurposerScreen.composeMainInv(midX: Int, midY: Int) {
+        background {
             texture = { ResourceLocation("vaultjp:textures/gui/jewel_inv.png") }
             srcRect = { Rect2i(0, 0, 158, 158) }
             pos = { midX + 20 to midY - 115 }
@@ -53,33 +46,34 @@ class JewelStorageComposition(
         }
 
 
-        for (slotIndex in 0..63) {
+        repeat (64) {
+            slotIndex->
             val x = slotIndex % 8
             val y = slotIndex / 8
             val slotCopy = slotIndex
-            screen.viewSlot {  //todo slot highlight
+            viewSlot {  //todo slot highlight
                 val jewelIndex = {
                     jewelOrder[slotCopy + jewelInvScroll]!!.slotPointer
                 }
                 slot = { jewelIndex() + firstSlot }
                 position = { x * 18 + 28 + midX to y * 18 - 107 + midY }
-                mapItem = { item ->
-                    if(item?.item is JewelItem )
-                    appendUsefulnessToLore(
-                        item,
-                        jewelOrder[slotCopy + jewelInvScroll]!!.usefulness
-                    ) else item
+                mapItem = { itemStack ->
+                    if (itemStack?.item is JewelItem)
+                        appendUsefulnessToLore(
+                            itemStack,
+                            jewelOrder[slotCopy + jewelInvScroll]!!.usefulness
+                        ) else itemStack
                 }
                 val isAccepted = {
                     jewelOrder[slotCopy + jewelInvScroll]!!.isAccepted
                 }
-                shouldHighlight={
+                shouldHighlight = {
                     it || isAccepted()
                 }
                 highlightColor = {
-                    when{
+                    when {
                         isAccepted() && it -> 0x7f77dd77
-                        isAccepted()-> 0x7f339933
+                        isAccepted() -> 0x7f339933
                         else -> -0x7f000001
                     }
                 }
@@ -87,8 +81,8 @@ class JewelStorageComposition(
         }
     }
 
-    private fun composeSideDecorations(screen: JewelPurposerScreen, midX: Int, midY: Int) {
-        screen.button {
+    private fun JewelPurposerScreen.composeSideDecorations( midX: Int, midY: Int) {
+        button {
             texture = { ResourceLocation("vaultjp:textures/gui/extra.png") }
             srcRect = { Rect2i(36, 0, 18, 18) }
             pos = { midX + 180 to midY - 108 }
@@ -97,11 +91,11 @@ class JewelStorageComposition(
                 jewelInvScroll = Integer.max(0, jewelInvScroll - 64)
             }
         }
-        screen.text {
+        text {
             text = { TextComponent(((jewelInvScroll + 64) / 64).toString() + "/" + pageCount) }
             pos = { width: Int -> midX + 190 - width / 2 to midY - 115 + 40 }
         }
-        screen.button {
+        button {
             texture = { ResourceLocation("vaultjp:textures/gui/extra.png") }
             srcRect = { Rect2i(36, 18, 18, 18) }
             pos = { midX + 180 to midY - 115 + 61 }
@@ -112,24 +106,20 @@ class JewelStorageComposition(
         }
     }
 
-    private fun appendUsefulnessToLore(item: ItemStack?, jewelUsefulness: Double): ItemStack? {
-        val t0 = (item?.takeIf { it.item is JewelItem }?:return item).getOrCreateTag()
-        val display = t0.getCompound("display")
-        val lore = display.getList("Lore", Tag.TAG_STRING.toInt())
-        lore.addTag(0, StringTag.valueOf("\"Usefulness: $jewelUsefulness\""))
-        display.put("Lore", lore)
-        val item2 = item.copy()
-        item2.getOrCreateTag().put("display", display)
-        return item2
+    private fun appendUsefulnessToLore(item: ItemStack?, jewelUsefulness: Double): ItemStack? = item?.copy()?.apply {
+        if(this.item !is JewelItem) return this
+        getOrCreateTag().apply{
+            put("display", getCompound("display").apply {
+                put("Lore", getList("Lore", Tag.TAG_STRING.toInt()).apply {
+                    addTag(0, StringTag.valueOf("\"Usefulness: $jewelUsefulness\""))
+                })
+            })
+        }
     }
 
-    override fun tick(screen: JewelPurposerScreen) {
-        determineOrder(screen.menu.tileEntity)
-    }
+    override fun tick(screen: JewelPurposerScreen) { determineOrder(screen.menu.tileEntity) }
 
-    fun markDirty() {
-        dirty = true
-    }
+    fun markDirty() { dirty = true }
 
     fun determineOrder(tile: JewelPurposerBlockEntity) {
         val cont = tile.inventory.overSizedContents
@@ -160,7 +150,7 @@ class JewelStorageComposition(
             contentIndex++
         }
 
-        Arrays.sort(jewelOrder, Comparator.comparingDouble { it: OrderEntry? -> -it!!.usefulness })
+        jewelOrder.sortBy { -it!!.usefulness }
         val jewels = getJewels(tile).toSet()
         jewelOrder.indices.forEach {
             if(jewelOrder[it]!!.slotPointer in jewels)jewelOrder[it]=jewelOrder[it]!!.copy(isAccepted = true)
@@ -179,7 +169,7 @@ class JewelStorageComposition(
         val jewels = IntArray(maxSize / 10)
         Arrays.fill(jewels, -1)
         var jewelCount = 0
-        for (entry in jewelOrder) {
+        jewelOrder.forEach { entry->
             val jewel = tile.inventory.getItem(entry!!.slotPointer)
             if (jewel.item is JewelItem) {
                 val data = VaultGearData.read(jewel)
@@ -189,11 +179,11 @@ class JewelStorageComposition(
                     VaultGearAttributeTypeMerger.firstNonNull()
                 )
                 if (jewelSize == null) jewelSize = 0
-                if (jewelSize + size > maxSize) continue
+                if (jewelSize + size > maxSize) return@forEach
                 size += jewelSize
                 jewels[jewelCount] = entry.slotPointer
                 jewelCount++
-                if (maxSize - size < 10 || jewelCount >= jewels.size) break
+                if (maxSize - size < 10 || jewelCount >= jewels.size) return jewels
             }
         }
         return jewels

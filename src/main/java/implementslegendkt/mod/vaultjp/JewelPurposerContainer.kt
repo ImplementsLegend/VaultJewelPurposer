@@ -39,9 +39,7 @@ class JewelPurposerContainer(windowId: Int, world: Level, private val tilePos: B
             }
         }
 
-        repeat(9) {hotbarSlot->
-            this.addSlot(TabSlot(playerInventory, hotbarSlot, 58 + hotbarSlot * 18, 166))
-        }
+        repeat(9) { hotbarSlot-> this.addSlot(TabSlot(playerInventory, hotbarSlot, 58 + hotbarSlot * 18, 166)) }
 
         val invContainer: Container = tileEntity.inventory
 
@@ -49,17 +47,12 @@ class JewelPurposerContainer(windowId: Int, world: Level, private val tilePos: B
             repeat(96) {column->
                 val overrideIndex = row * 96 + column
                 this.addSlot(object : TabSlot(invContainer, overrideIndex, -999 + column * 18, 50 + row * 18) {
-                    override fun mayPlace(stack: ItemStack): Boolean {
-                        return stack.item is JewelItem
-                    }
+                    override fun mayPlace(stack: ItemStack): Boolean = stack.item is JewelItem
 
-                    override fun getItem(): ItemStack {
-                        val itemstack0 =
-                            (invContainer as AccessorOverSizedInventory).contents!![overrideIndex]
-                        val itemstack = ItemStack(itemstack0.stack().item, itemstack0.amount())
-                        itemstack.tag = itemstack0.stack().tag
-                        return itemstack
-                    }
+                    override fun getItem(): ItemStack =
+                        (invContainer as AccessorOverSizedInventory).contents!![overrideIndex].let { itemstack->
+                            ItemStack(itemstack.stack().item, itemstack.amount()).apply { tag = itemstack.stack().tag }
+                        }
                 })
             }
         }
@@ -69,63 +62,50 @@ class JewelPurposerContainer(windowId: Int, world: Level, private val tilePos: B
                 /*
                 * Extra slots intended for other purposes; currently unused
                 * */
-                this.addSlot(object :
-                    TabSlot(invContainer, row * 4 + column + JEWEL_COUNT_MAX, -999 + column * 18, 50 + row * 18) {
-                    override fun mayPlace(stack: ItemStack): Boolean {
-                        return false //!(stack.getItem() instanceof JewelItem) && !(stack.getItem() instanceof ToolItem);
-                    }
+                this.addSlot(object : TabSlot(invContainer, row * 4 + column + JEWEL_COUNT_MAX, -999 + column * 18, 50 + row * 18) {
+                    override fun mayPlace(stack: ItemStack): Boolean = false //!(stack.getItem() instanceof JewelItem) && !(stack.getItem() instanceof ToolItem);
+
                 })
             }
         }
         this.addSlot(object : TabSlot(invContainer, JEWEL_COUNT_MAX + 16, 120, 73) {
-            override fun mayPlace(stack: ItemStack): Boolean {
-                return stack.item is ToolItem
-            }
+            override fun mayPlace(stack: ItemStack): Boolean = stack.item is ToolItem
         }.setBackground(InventoryMenu.BLOCK_ATLAS, ModSlotIcons.TOOL_NO_ITEM))
     }
 
     override fun quickMoveStack(player: Player, index: Int): ItemStack {
-        var itemstack = ItemStack.EMPTY
         val slot = slots[index]
-        if (slot.hasItem()) {
-            val slotStack = slot.item
-            itemstack = slotStack.copy()
-            if (index in 0..35 && this.moveOverSizedItemStackTo(
-                    slotStack, slot, 36,
-                    slots.size, false
-                )
-            ) {
-                return itemstack
-            }
+        if (!slot.hasItem()) return ItemStack.EMPTY
 
-            when {
-                index in 0..26 -> {
-                    if (!this.moveOverSizedItemStackTo(slotStack, slot, 27, 36, false)) {
-                        return ItemStack.EMPTY
-                    }
-                }
-                index in 27..35 -> {
-                    if (!this.moveOverSizedItemStackTo(slotStack, slot, 0, 27, false)) {
-                        return ItemStack.EMPTY
-                    }
-                }
-                !this.moveOverSizedItemStackTo(slotStack, slot, 0, 36, false) -> {
+        val slotStack = slot.item
+        val itemstack = slotStack.copy()
+        if (index in 0..35 && this.moveOverSizedItemStackTo(slotStack, slot, 36, slots.size, false)) return itemstack
+
+        when {
+            index in 0..26 -> {
+                if (!this.moveOverSizedItemStackTo(slotStack, slot, 27, 36, false)) {
                     return ItemStack.EMPTY
                 }
             }
-
-            if (slotStack.count == 0) {
-                slot.set(ItemStack.EMPTY)
-            } else {
-                slot.setChanged()
+            index in 27..35 -> {
+                if (!this.moveOverSizedItemStackTo(slotStack, slot, 0, 27, false)) {
+                    return ItemStack.EMPTY
+                }
             }
-
-            if (slotStack.count == itemstack.count) {
+            !this.moveOverSizedItemStackTo(slotStack, slot, 0, 36, false) -> {
                 return ItemStack.EMPTY
             }
-
-            slot.onTake(player, slotStack)
         }
+
+        if (slotStack.count == 0) {
+            slot.set(ItemStack.EMPTY)
+        } else {
+            slot.setChanged()
+        }
+
+        if (slotStack.count == itemstack.count) return ItemStack.EMPTY
+
+        slot.onTake(player, slotStack)
 
         return itemstack
     }

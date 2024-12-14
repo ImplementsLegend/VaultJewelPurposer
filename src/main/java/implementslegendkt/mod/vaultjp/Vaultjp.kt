@@ -20,46 +20,37 @@ import org.slf4j.Logger
 class Vaultjp {
     init {
         MinecraftForge.EVENT_BUS.register(this)
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            VaultJPClient.registerScreen()
-        }
+        if (FMLEnvironment.dist == Dist.CLIENT) VaultJPClient.registerScreen()
     }
 
     @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
     object RegistryEvents {
         @SubscribeEvent
         @JvmStatic
-        fun setupCommon(event: FMLCommonSetupEvent?) {
-            registerPackets()
+        fun setupCommon(event: FMLCommonSetupEvent?) { registerPackets() }
+
+        @SubscribeEvent
+        @JvmStatic
+        fun onBlocksRegistry(registryEvent: RegistryEvent.Register<Block?>) {
+            registryEvent.registry.register(JewelPurposerBlock.apply { setRegistryName("vaultjp", "jewel_purpuser") })
         }
 
         @SubscribeEvent
         @JvmStatic
-        fun onBlocksRegistry(blockRegistryEvent: RegistryEvent.Register<Block?>) {
-            JewelPurposerBlock.setRegistryName("vaultjp", "jewel_purpuser")
-            blockRegistryEvent.registry.register(JewelPurposerBlock)
+        fun onBlockItemssRegistry(registryEvent: RegistryEvent.Register<Item?>) {
+            registryEvent.registry.register(JewelPurposerBlock.ITEM.apply { setRegistryName("vaultjp", "jewel_purpuser") })
         }
 
         @SubscribeEvent
         @JvmStatic
-        fun onBlockItemssRegistry(blockRegistryEvent: RegistryEvent.Register<Item?>) {
-            JewelPurposerBlock.ITEM.setRegistryName("vaultjp", "jewel_purpuser")
-            blockRegistryEvent.registry.register(JewelPurposerBlock.ITEM)
+        fun onBlockEntitiesRegistry(registryEvent: RegistryEvent.Register<BlockEntityType<*>?>) {
+            registryEvent.registry.register(JewelPurposerBlockEntity.TYPE.apply { setRegistryName("vaultjp", "jewel_purpuser_entity") })
         }
 
         @SubscribeEvent
         @JvmStatic
-        fun onBlockEntitiesRegistry(blockRegistryEvent: RegistryEvent.Register<BlockEntityType<*>?>) {
-            JewelPurposerBlockEntity.TYPE.setRegistryName("vaultjp", "jewel_purpuser_entity")
-            blockRegistryEvent.registry.register(JewelPurposerBlockEntity.TYPE)
-        }
-
-        @SubscribeEvent
-        @JvmStatic
-        fun onBlockMenuRegistry(blockRegistryEvent: RegistryEvent.Register<MenuType<*>?>) {
-            JewelPurposerContainer.MENU_TYPE.setRegistryName("vaultjp", "jewel_purpuser_container")
-            blockRegistryEvent.registry.register(JewelPurposerContainer.MENU_TYPE)
+        fun onBlockMenuRegistry(registryEvent: RegistryEvent.Register<MenuType<*>?>) {
+            registryEvent.registry.register(JewelPurposerContainer.MENU_TYPE.apply { setRegistryName("vaultjp", "jewel_purpuser_container") })
         }
     }
 

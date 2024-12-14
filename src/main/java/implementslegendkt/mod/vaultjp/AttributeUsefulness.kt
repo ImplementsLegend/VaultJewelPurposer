@@ -1,11 +1,10 @@
 package implementslegendkt.mod.vaultjp
 
-import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger
 import iskallia.vault.gear.data.VaultGearData
 
 @JvmRecord
 data class AttributeUsefulness( val attribute: JewelAttribute,  val multiplier: Double) {
-    fun getValue(item: VaultGearData) =
+    fun evaluate(item: VaultGearData) =
         item
             .allAttributes
             .toList()

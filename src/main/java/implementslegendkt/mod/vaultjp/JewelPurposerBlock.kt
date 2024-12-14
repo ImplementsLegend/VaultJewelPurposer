@@ -24,9 +24,7 @@ import net.minecraft.world.item.context.BlockPlaceContext
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.LevelAccessor
 import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.DirectionalBlock
 import net.minecraft.world.level.block.EntityBlock
-import net.minecraft.world.level.block.LadderBlock
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityTicker
 import net.minecraft.world.level.block.entity.BlockEntityType
@@ -106,7 +104,7 @@ object JewelPurposerBlock:Block(Properties.of(Material.STONE).noOcclusion().dest
                     UpdatePurposesPacket(p_60505_, purposer.purposes),
                     player.connection.getConnection(),
                     NetworkDirection.PLAY_TO_CLIENT
-                );
+                )
                 NetworkHooks.openGui(player, purposer) { it.writeBlockPos(p_60505_) }
             }
         }

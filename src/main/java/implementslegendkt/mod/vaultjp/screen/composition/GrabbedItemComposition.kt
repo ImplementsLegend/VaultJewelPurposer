@@ -8,10 +8,10 @@ import net.minecraft.world.item.ItemStack
 import oshi.util.tuples.Pair
 
 class GrabbedItemComposition<T : DecentScreen<T, *>> : Composition<T> {
-    override fun compose(screen: T, midX: Int, midY: Int) {
-        screen.viewSlot {
+    override fun T.compose(midX: Int, midY: Int) {
+        viewSlot {
             shouldHighlight = { false }
-            mapItem = { screen.menu.carried }
+            mapItem = { menu.carried }
             position = {
                 val i =
                     (Minecraft.getInstance().mouseHandler.xpos() * Minecraft.getInstance().window.guiScaledWidth.toDouble() / Minecraft.getInstance().window.screenWidth.toDouble() - 8).toInt()
@@ -20,5 +20,6 @@ class GrabbedItemComposition<T : DecentScreen<T, *>> : Composition<T> {
                 i to j
             }
         }
+
     }
 }

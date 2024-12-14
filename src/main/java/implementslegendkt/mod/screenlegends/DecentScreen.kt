@@ -24,31 +24,21 @@ open class DecentScreen<SELF : DecentScreen<SELF, M>, M : AbstractContainerMenu>
 
     private val interactors = HashMap<Class<out ViewInteractor<*>?>?, ViewInteractor<*>?>()
 
-    private val compositions by lazy {
-        createCompositions()
-    }
+    private val compositions by lazy { createCompositions() }
 
-    protected open fun createCompositions(): List<Composition<SELF>> {
-        return ArrayList()
-    }
+    protected open fun createCompositions(): List<Composition<SELF>> = ArrayList()
 
-
-    override fun isPauseScreen(): Boolean {
-        return false
-    }
+    override fun isPauseScreen(): Boolean = false
 
     override fun init() {
         super.init()
 
-
-        for ((_, interactor) in interactors) {
-            interactor!!.clear()
-        }
+        forEachInteractor { it!!.clear() }
 
         val midX = width / 2
         val midY = height / 2
 
-        compositions.forEach { it.compose(this as SELF,midX, midY) }
+        compositions.forEach { with(it) { (this@DecentScreen as SELF).compose(midX, midY)} }
     }
 
     override fun tick() {
@@ -56,84 +46,38 @@ open class DecentScreen<SELF : DecentScreen<SELF, M>, M : AbstractContainerMenu>
         compositions.forEach { it.tick(this as SELF) }
     }
 
-    private inline fun <reified T : ViewInteractor<*>?> getOrCreateInteractor(
-        noinline constructor: (Class<out ViewInteractor<*>?>?)->T?
-    ): T? {
-        return interactors.computeIfAbsent(T::class.java, constructor) as T?
-    }
+    private inline fun <reified T : ViewInteractor<*>?> getOrCreateInteractor(noinline constructor: (Class<out ViewInteractor<*>?>?)->T?): T? = interactors.computeIfAbsent(T::class.java, constructor) as T?
 
-    var itemRenderer: ItemRenderer
-        get() = itemRenderer
-        set(itemRenderer) {
-            super.itemRenderer = itemRenderer
-        }
+    var itemRenderer: ItemRenderer by ::itemRenderer
 
-    protected fun slider() {
-    }
+    private inline fun <reified T:ViewInteractor<K>?,reified K:View>viewToInteractor(noinline newInteractor: (Class<out ViewInteractor<*>?>?)->T?,view:K,applyFnc:K.()->Unit) = getOrCreateInteractor (newInteractor)?.addView(view.apply(applyFnc))
 
-    fun viewSlot(slotView: SlotViewDSL.() -> Unit) {
-        getOrCreateInteractor { SlotInteractor() }?.addView(SlotViewDSL().apply(slotView))
-    }
-
-    fun button(slotView: ButtonViewDSL.() -> Unit) {
-        getOrCreateInteractor { ButtonInteractor() }?.addView(ButtonViewDSL().apply(slotView))
-    }
-
-    fun intBox(slotView: IntBoxViewDSL.()->Unit) {
-        getOrCreateInteractor { IntBoxInteractor() }?.addView(IntBoxViewDSL().apply(slotView))
-    }
-
-    fun text(slotView: TextViewDSL.()->Unit) {
-        getOrCreateInteractor { TextInteractor() }?.addView(TextViewDSL().apply(slotView))
-    }
-
-    fun background(slotView: BackgroundViewDSL.() -> Unit) {
-        getOrCreateInteractor { BackgroundInteractor() }?.addView(BackgroundViewDSL().apply(slotView))
-    }
+    fun viewSlot(slotView: SlotViewDSL.() -> Unit) =viewToInteractor({SlotInteractor()},SlotViewDSL(),slotView)
+    fun button(slotView: ButtonViewDSL.() -> Unit) =viewToInteractor({ButtonInteractor()},ButtonViewDSL(),slotView)
+    fun intBox(slotView: IntBoxViewDSL.()->Unit)  =viewToInteractor({IntBoxInteractor()},IntBoxViewDSL(),slotView)
+    fun text(slotView: TextViewDSL.()->Unit) =viewToInteractor({TextInteractor()},TextViewDSL(),slotView)
+    fun background(slotView: BackgroundViewDSL.() -> Unit) =viewToInteractor({BackgroundInteractor()},BackgroundViewDSL(),slotView)
 
     override fun render(p_96562_: PoseStack, x: Int, y: Int, p_96565_: Float) {
         interactors[BackgroundInteractor::class.java]?.renderViews(this,p_96562_,x,y)
-        interactors.forEach {
-            (_,interactor)-> interactor?.takeUnless { it is BackgroundInteractor }?.renderViews(this, p_96562_, x, y)
-        }
+        forEachInteractorNotBackgraound { it.renderViews(this, p_96562_, x, y) }
     }
 
-    override fun keyPressed(p_96552_: Int, p_96553_: Int, p_96554_: Int): Boolean {
-        interactors.forEach {
-            (_,interactor)->interactor?.takeUnless { it is BackgroundInteractor }?.type(this,p_96552_,p_96554_)
-        }
-        return super.keyPressed(p_96552_, p_96553_, p_96554_)
+    override fun keyPressed(p_96552_: Int, p_96553_: Int, p_96554_: Int): Boolean = super.keyPressed(p_96552_, p_96553_, p_96554_).also{
+        forEachInteractorNotBackgraound {  it.type(this,p_96552_,p_96554_) }
     }
 
-    public override fun fillGradient(
-        p_93180_: PoseStack,
-        p_93181_: Int,
-        p_93182_: Int,
-        p_93183_: Int,
-        p_93184_: Int,
-        p_93185_: Int,
-        p_93186_: Int
-    ) {
-        super.fillGradient(p_93180_, p_93181_, p_93182_, p_93183_, p_93184_, p_93185_, p_93186_)
-    }
+    public override fun fillGradient(pose: PoseStack, p_93181_: Int, p_93182_: Int, p_93183_: Int, p_93184_: Int, p_93185_: Int, p_93186_: Int) =
+        super.fillGradient(pose, p_93181_, p_93182_, p_93183_, p_93184_, p_93185_, p_93186_)
 
-    override fun mouseClicked(x: Double, y: Double, buttons: Int): Boolean {
-        interactors.forEach { (_, interactor) ->
-            interactor?.takeUnless { it is BackgroundInteractor }?.click(this, x.toInt(), y.toInt(), buttons)
-        }
+    override fun mouseClicked(x: Double, y: Double, buttons: Int) = super.mouseClicked(x,y,buttons).also {
+        forEachInteractorNotBackgraound {  it.click(this, x.toInt(), y.toInt(), buttons) }
         interactors[BackgroundInteractor::class.java]!!.click(this, x.toInt(), y.toInt(), buttons)
-
-
-        return super.mouseClicked(x, y, buttons)
     }
+    private inline fun forEachInteractor(fnc:(ViewInteractor<*>?)->Unit) = interactors.forEach{(_, interactor) ->fnc(interactor)}
+    private inline fun forEachInteractorNotBackgraound(fnc:(ViewInteractor<*>)->Unit) = forEachInteractor { if(it !is BackgroundInteractor?) fnc(it as ViewInteractor<*>) }
 
-    override fun getMenu(): M {
-        return menu
-    }
+    override fun getMenu(): M = menu
 
-    var font: Font
-        get() = super.font
-        set(font) {
-            super.font = font
-        }
+    var font: Font by ::font
 }

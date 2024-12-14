@@ -5,7 +5,6 @@ import implementslegendkt.mod.vaultjp.PurposerExternalStorages.saveExternalStora
 import implementslegendkt.mod.vaultjp.mixin.AccessorDataStorage
 import implementslegendkt.mod.vaultjp.network.Channel
 import implementslegendkt.mod.vaultjp.network.UpdatePurposesPacket
-import iskallia.vault.block.entity.VaultJewelApplicationStationTileEntity
 import iskallia.vault.container.oversized.OverSizedInventory
 import iskallia.vault.gear.attribute.type.VaultGearAttributeTypeMerger
 import iskallia.vault.gear.data.ToolGearData
@@ -195,7 +194,7 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
     fun disposeBad() {
         if (purposes.isEmpty()) return
 
-        val next = level!!.getBlockEntity(worldPosition.below()) ?: return
+        val next = level?.getBlockEntity(worldPosition.below()) ?: return
         val cap = next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, Direction.UP)
             .orElse(next.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElse(null))
             ?: return
@@ -248,7 +247,7 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
     companion object {
         @JvmField
         val TYPE: BlockEntityType<JewelPurposerBlockEntity> = BlockEntityType.Builder.of(
-            { p_155229_: BlockPos?, p_155230_: BlockState? -> JewelPurposerBlockEntity(p_155229_, p_155230_) },
+            { pos, state -> JewelPurposerBlockEntity(pos, state) },
             JewelPurposerBlock
         ).build(null)
     }
@@ -257,15 +256,10 @@ class JewelPurposerBlockEntity(p_155229_: BlockPos?, p_155230_: BlockState?) : B
 
 class JewelPurposerInventory(val purposer:JewelPurposerBlockEntity) :
     OverSizedInventory(JewelPurposerContainer.JEWEL_COUNT_MAX + 16 + 1, purposer),
-    DefaultWorldlyContainer {
-    override fun canTakeItemThroughFace(p_19235_: Int, p_19236_: ItemStack, p_19237_: Direction): Boolean {
-        if (p_19236_.item is JewelItem) {
-            if (!purposer.purposes.stream()
-                    .allMatch { purpose: JewelPurpose -> purpose.getJewelUsefulness(p_19236_) < purpose.disposeThreshold }
-            ) {
-                return false
-            }
-        }
-        return super.canPlaceItemThroughFace(p_19235_, p_19236_, p_19237_)
-    }
+    DefaultWorldlyContainer
+{
+    override fun canTakeItemThroughFace(p_19235_: Int, stack: ItemStack, directio: Direction): Boolean =
+        if (stack.item is JewelItem && purposer.purposes.any { purpose -> purpose.getJewelUsefulness(stack) >= purpose.disposeThreshold }) {
+            false
+        } else super.canPlaceItemThroughFace(p_19235_, stack, directio)
 }

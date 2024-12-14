@@ -21,6 +21,12 @@ class PurposerExternalStorage(val uuid:UUID, purposer:JewelPurposerBlockEntity):
     }
 
     override fun isDirty() = super.isDirty() && !deleted
+    fun loadFromTag(tag: CompoundTag){
+        inventory.load(tag)
+        purposes.addAll(
+            tag.getList("purposes", CompoundTag.TAG_COMPOUND.toInt())
+                .map { JewelPurpose.readNBT(it as CompoundTag) })
+    }
 
 }
 object PurposerExternalStorages {
@@ -41,3 +47,4 @@ object PurposerExternalStorages {
 
     fun nameFor(externalUUID: UUID?): String = "purposer_$externalUUID"
 }
+

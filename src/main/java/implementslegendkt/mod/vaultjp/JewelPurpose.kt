@@ -25,7 +25,7 @@ data class JewelPurpose(
                 VaultGearAttributeTypeMerger.firstNonNull()
             )
         return if (size == null || size <= 0) Double.POSITIVE_INFINITY
-            else values.sumOf { it.getValue(VaultGearData.read(jewel)) } / size
+            else values.sumOf { usefulness -> usefulness.evaluate(VaultGearData.read(jewel)) } / size
     }
 
     fun isBad(jewel: ItemStack) = getJewelUsefulness(jewel) < disposeThreshold
@@ -33,32 +33,33 @@ data class JewelPurpose(
     companion object {
         private val jewelAttributes: List<JewelAttribute> = Arrays.asList(*JewelAttribute.values())
 
-        fun readNBT(nbt: CompoundTag) =
+        fun readNBT(nbt: CompoundTag) = nbt.run {
             JewelPurpose(
-                (nbt["usefulnesses"] as? ListTag)?.filterIsInstance<CompoundTag>()?.map {
+                (this["usefulnesses"] as? ListTag)?.filterIsInstance<CompoundTag>()?.map { usefulnessEntry ->
                     AttributeUsefulness(
-                        jewelAttributes[it.getInt("attr")],
-                        it.getDouble("mul")
+                        jewelAttributes[usefulnessEntry.getInt("attr")],
+                        usefulnessEntry.getDouble("mul")
                     )
                 }?.toMutableList() ?: arrayListOf(),
-                nbt.getDouble("trash"),
-                nbt.getBoolean("div"),
-                nbt.getString("name")
+                getDouble("trash"),
+                getBoolean("div"),
+                getString("name")
             )
+        }
 
         fun writeNBT(purpose: JewelPurpose) = CompoundTag().apply {
-            val list = ListTag()
+            put("usefulnesses", ListTag().apply {
 
-            for ((attribute1, multiplier) in purpose.values) {
-                list.add(CompoundTag().apply {
+                purpose.values.forEach { (attribute1, multiplier) ->
+                    add(CompoundTag().apply {
 
-                    val attribute = jewelAttributes.indexOf(attribute1)
+                        val attribute = jewelAttributes.indexOf(attribute1)
 
-                    putInt("attr", attribute)
-                    putDouble("mul", multiplier)
-                })
-            }
-            put("usefulnesses", list)
+                        putInt("attr", attribute)
+                        putDouble("mul", multiplier)
+                    })
+                }
+            })
             putBoolean("div", purpose.divideBySize)
             putDouble("trash", purpose.disposeThreshold)
             putString("name", purpose.name)
