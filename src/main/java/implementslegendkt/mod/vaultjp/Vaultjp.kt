@@ -1,9 +1,12 @@
 package implementslegendkt.mod.vaultjp
 
+import net.minecraft.world.level.GameRules.register
 import com.mojang.logging.LogUtils
 import implementslegendkt.mod.vaultjp.network.Channel.registerPackets
+import iskallia.vault.init.ModGameRules
 import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.item.Item
+import net.minecraft.world.level.GameRules
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraftforge.api.distmarker.Dist
@@ -15,6 +18,8 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.loading.FMLEnvironment
 import org.slf4j.Logger
+
+
 
 @Mod("vaultjp")
 class Vaultjp {
@@ -56,5 +61,6 @@ class Vaultjp {
 
     companion object {
         private val LOGGER: Logger = LogUtils.getLogger()
+        val KEEP_CONTENT_GAMERULE = register("vaultjpKeepsContent",GameRules.Category.DROPS, ModGameRules.booleanRule(false))
     }
 }

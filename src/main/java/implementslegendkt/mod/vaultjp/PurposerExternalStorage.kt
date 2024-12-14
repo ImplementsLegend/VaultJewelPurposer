@@ -8,7 +8,7 @@ import java.util.ArrayList
 import java.util.UUID
 
 
-class PurposerExternalStorage(val uuid:UUID, purposer:JewelPurposerBlockEntity):SavedData() {
+class PurposerExternalStorage(val uuid:UUID, val purposer:JewelPurposerBlockEntity):SavedData() {
 
     var deleted = false
     val inventory: JewelPurposerInventory = JewelPurposerInventory(purposer)
@@ -33,16 +33,22 @@ object PurposerExternalStorages {
     fun getOrCreateExternalStorage(storage:DimensionDataStorage,uuid:UUID, purposer:JewelPurposerBlockEntity) =
         storage.get({
             tag->
-            PurposerExternalStorage(uuid,purposer).apply {
-                inventory.load(tag)
-                purposes.addAll(
-                    tag.getList("purposes", CompoundTag.TAG_COMPOUND.toInt())
-                        .map { JewelPurpose.readNBT(it as CompoundTag) })
-            }
-        },nameFor(uuid))?:PurposerExternalStorage(uuid,purposer)
+            PurposerExternalStorage(uuid,purposer).apply { loadFromTag(tag) }
+        },nameFor(uuid))?.tryTransfer(purposer,storage)?:PurposerExternalStorage(uuid,purposer)
+
     fun saveExternalStorage(storage:DimensionDataStorage,data:PurposerExternalStorage){
         data.isDirty=true
         storage.set(nameFor(data.uuid),data)
+    }
+    fun PurposerExternalStorage.tryTransfer(purposer: JewelPurposerBlockEntity, storage: DimensionDataStorage): PurposerExternalStorage? {
+        return if(this.purposer!==purposer){
+            val tag = CompoundTag()
+            save(tag)
+            val new = PurposerExternalStorage(uuid,purposer)
+            new.loadFromTag(tag)
+            saveExternalStorage(storage,new)
+            new
+        }else this
     }
 
     fun nameFor(externalUUID: UUID?): String = "purposer_$externalUUID"
