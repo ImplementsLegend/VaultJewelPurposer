@@ -70,6 +70,7 @@ class IntBoxViewDSL : View {
                     val rect = view.srcRect()?:return@drawImage
                     val position = view.pos()
                     val atlas = view.atlasSize()?:return@drawImage
+                    RenderSystem.enableDepthTest()
                     GuiComponent.blit(
                         stack,
                         position.first,
@@ -86,7 +87,7 @@ class IntBoxViewDSL : View {
                     val hoveringX = cursorX > position.first && cursorX < position.first + rect.width
                     val hoveringY = cursorY > position.second && cursorY < position.second + rect.height
                     if (view.shouldHighlight.apply(hoveringX && hoveringY)) {
-                        RenderSystem.disableDepthTest()
+                        //RenderSystem.disableDepthTest()
                         GuiComponent.fill(
                             stack,
                             position.first,
@@ -95,7 +96,7 @@ class IntBoxViewDSL : View {
                             position.second + rect.height,
                             0x40ffffff
                         )
-                        RenderSystem.enableDepthTest()
+                        //RenderSystem.enableDepthTest()
                     }
                 }
                 run drawText@{
@@ -111,7 +112,7 @@ class IntBoxViewDSL : View {
                         val hoveringY = cursorY > position.second && cursorY < position.second + height
                         if (hoveringX && hoveringY) {
                             val action = hover.action
-                            RenderSystem.disableDepthTest()
+                            //RenderSystem.disableDepthTest()
                             if (action == HoverEvent.Action.SHOW_TEXT) {
                                 val txt = hover.getValue(HoverEvent.Action.SHOW_TEXT)
                                 screen.renderTooltip(stack, List.of(txt), Optional.empty(), cursorX, cursorY)
@@ -129,7 +130,7 @@ class IntBoxViewDSL : View {
                                 screen.renderTooltip(stack, info!!.tooltipLines, Optional.empty(), cursorX, cursorY)
                             } else { /*unknown tooltip type*/
                             }
-                            RenderSystem.enableDepthTest()
+                            //RenderSystem.enableDepthTest()
                         }
                     }
                 }

@@ -46,7 +46,9 @@ class TextViewDSL : View {
                     val hoveringY = cursorY > position.second && cursorY < position.second + height
                     if (hoveringX && hoveringY) {
                         val action = hover.action
-                        RenderSystem.disableDepthTest()
+                        //RenderSystem.disableDepthTest()
+                        stack?.pushPose()
+                        stack?.last()?.pose()?.setTranslation(0f,0f,100f)
                         if (action == HoverEvent.Action.SHOW_TEXT) {
                             val txt = hover.getValue(HoverEvent.Action.SHOW_TEXT)
                             screen.renderTooltip(stack, List.of(txt), Optional.empty(), cursorX, cursorY)
@@ -64,7 +66,8 @@ class TextViewDSL : View {
                             screen.renderTooltip(stack, info!!.tooltipLines, Optional.empty(), cursorX, cursorY)
                         } else { /*unknown tooltip type*/
                         }
-                        RenderSystem.enableDepthTest()
+                        stack?.popPose()
+                        //RenderSystem.enableDepthTest()
                     }
                 }
             }

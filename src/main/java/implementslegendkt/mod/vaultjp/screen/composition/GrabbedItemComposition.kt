@@ -19,6 +19,7 @@ class GrabbedItemComposition<T : DecentScreen<T, *>> : Composition<T> {
                     (Minecraft.getInstance().mouseHandler.ypos() * Minecraft.getInstance().window.guiScaledHeight.toDouble() / Minecraft.getInstance().window.screenHeight.toDouble() - 8).toInt()
                 i to j
             }
+            zOffset={ 100f }
         }
 
     }

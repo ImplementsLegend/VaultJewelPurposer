@@ -50,12 +50,12 @@ open class DecentScreen<SELF : DecentScreen<SELF, M>, M : AbstractContainerMenu>
 
     var itemRenderer: ItemRenderer by ::itemRenderer
 
-    private inline fun <reified T:ViewInteractor<K>?,reified K:View>viewToInteractor(noinline newInteractor: (Class<out ViewInteractor<*>?>?)->T?,view:K,applyFnc:K.()->Unit) = getOrCreateInteractor (newInteractor)?.addView(view.apply(applyFnc))
+    private inline fun <reified T:ViewInteractor<K>?,reified K:View> viewToInteractor(noinline newInteractor: (Class<out ViewInteractor<*>?>?)->T?,view:K,applyFnc:K.()->Unit) = getOrCreateInteractor (newInteractor)?.addView(view.apply(applyFnc))
 
-    fun viewSlot(slotView: SlotViewDSL.() -> Unit) =viewToInteractor({SlotInteractor()},SlotViewDSL(),slotView)
-    fun button(slotView: ButtonViewDSL.() -> Unit) =viewToInteractor({ButtonInteractor()},ButtonViewDSL(),slotView)
-    fun intBox(slotView: IntBoxViewDSL.()->Unit)  =viewToInteractor({IntBoxInteractor()},IntBoxViewDSL(),slotView)
-    fun text(slotView: TextViewDSL.()->Unit) =viewToInteractor({TextInteractor()},TextViewDSL(),slotView)
+    fun viewSlot(slotView: SlotViewDSL.() -> Unit) = viewToInteractor({SlotInteractor()},SlotViewDSL(),slotView)
+    fun button(slotView: ButtonViewDSL.() -> Unit) = viewToInteractor({ButtonInteractor()},ButtonViewDSL(),slotView)
+    fun intBox(slotView: IntBoxViewDSL.()->Unit)   = viewToInteractor({IntBoxInteractor()},IntBoxViewDSL(),slotView)
+    fun text(slotView: TextViewDSL.()->Unit)       = viewToInteractor({TextInteractor()},TextViewDSL(),slotView)
     fun background(slotView: BackgroundViewDSL.() -> Unit) =viewToInteractor({BackgroundInteractor()},BackgroundViewDSL(),slotView)
 
     override fun render(p_96562_: PoseStack, x: Int, y: Int, p_96565_: Float) {

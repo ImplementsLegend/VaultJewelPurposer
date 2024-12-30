@@ -42,6 +42,7 @@ class ButtonViewDSL : View {
                 val rect = view.srcRect()?:return@forEnabledViews
                 val position = view.pos()
                 val atlas = view.atlasSize()?:return@forEnabledViews
+                RenderSystem.enableDepthTest()
                 GuiComponent.blit(
                     stack,
                     position.first,
@@ -58,7 +59,7 @@ class ButtonViewDSL : View {
                 val hoveringX = cursorX > position.first && cursorX < position.first + rect.width
                 val hoveringY = cursorY > position.second && cursorY < position.second + rect.height
                 if (view.shouldHighlight.apply(hoveringX && hoveringY)) {
-                    RenderSystem.disableDepthTest()
+                    //RenderSystem.disableDepthTest()
                     GuiComponent.fill(
                         stack,
                         position.first,
@@ -67,7 +68,7 @@ class ButtonViewDSL : View {
                         position.second + rect.height,
                         0x40ffffff
                     )
-                    RenderSystem.enableDepthTest()
+                    //RenderSystem.enableDepthTest()
                 }
             }
         }
